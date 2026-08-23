@@ -38,8 +38,32 @@ def add_assessment(subject, name, weight, score):
     print(f"Assessment '{name}' added successfully.")
     return True
 
+def calculate_weighted_contribution(score, weight):
+    """
+    Calculates how much an assessment contributes to the overall grade.
+    Example: score=80, weight=20 -> contribution=16
+    """
+    return score * weight / 100
+
+
+def calculate_subject_performance(subject):
+    """
+    Calculates the subject's current earned percentage
+    by summing the weighted contribution of every assessment.
+    """
+    total = 0
+    for assessment in subject["assessments"]:
+        contribution = calculate_weighted_contribution(assessment["score"], assessment["weight"])
+        total += contribution
+    return total
 
 if __name__ == "__main__":
     add_assessment(subject, "Assignment 1", 20, 80)
     add_assessment(subject, "Quiz 1", 10, -5)   # should fail
     print(subject)
+
+    add_assessment(subject, "Quiz 1", 10, 70)  # add a valid second assessment
+    performance = calculate_subject_performance(subject)
+    print(f"Current subject performance: {performance}%")
+
+    
