@@ -1,19 +1,23 @@
 import customtkinter
 
-#Define sample subjects and their scores
-subjects = ["Programming","Mathematics","Physics"]
-score = [76, 82, 68]
+subjects = [
+    {"name": "Programming", "score": 76},
+    {"name": "Mathematics", "score": 82},
+    {"name": "Physics", "score": 68},
+]
+
 
 class Dashboard(customtkinter.CTk):
     def __init__(self):
         super().__init__()
-        self.geometry("900x450")
         self.title("MMU Academic Planner")
+        self.geometry("900x450")
 
-        self.textbox = customtkinter.CTkTextbox(self, width=300, height=200)
-        self.textbox.pack(pady=20)
-        array_string = "\n".join(subjects)
-        self.textbox.insert("0.0", array_string)
+
+        for subject in subjects:
+            row_text = f'{subject["name"]}: {subject["score"]}%'
+            row = customtkinter.CTkLabel(self, text=row_text, font=customtkinter.CTkFont(size=20))
+            row.pack(pady=10)
 
 
 app = Dashboard()
