@@ -50,7 +50,7 @@ if __name__ == "__main__":
     ctk.set_appearance_mode("System")
     ctk.set_default_color_theme("blue")
     root = ctk.CTk()
-    root.title("Subject Manager (Week 1 prototype)")
+    root.title("Subject Manager (prototype)")
     root.geometry("500x450")
     SubjectManagerFrame(root).pack(fill="both", expand=True)
     root.mainloop()
