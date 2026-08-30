@@ -2,6 +2,8 @@ import customtkinter
 
 ##function to get the grade letter from the score
 def percent_to_letter(score):
+    if score < 0 or score > 100:
+        return "Invalid score"
     if score >= 90:
         return "A+"
     elif score >= 80:
@@ -42,7 +44,7 @@ class Dashboard(customtkinter.CTk):
         self.title("MMU Academic Planner")
         self.geometry("900x450")
 
-
+        print(percent_to_letter(-10))
         for subject in subjects:
             row_text = f'{subject["code"]} - {subject["name"]}: {subject["score"]}%'
             row = customtkinter.CTkLabel(self, text=row_text, font=customtkinter.CTkFont(size=20))
