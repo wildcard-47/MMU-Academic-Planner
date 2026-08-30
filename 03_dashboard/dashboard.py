@@ -29,12 +29,17 @@ def percent_to_letter(score):
     else:
         return "F"
 
+#define a function to find the highest subject
+def find_highest_subject(subjects_list):
+    if not subjects_list:
+        return None  # Handles empty list scenario safely
+    return max(subjects_list, key=lambda x: x["score"])
 
 #defined subjects with their scores
 subjects = [
     {"id":1, "code" : "CSP1114", "name": "Programming", "score": 76},
     {"id":2, "code" : "CMT1134", "name": "Mathematics", "score": 82},
-    {"id":3, "code" : "CPP1113", "name": "Physics", "score": 68},
+    {"id":3, "code" : "CPP1113", "name": "Physics", "score": 90},
 ]
 
 
@@ -52,6 +57,12 @@ class Dashboard(customtkinter.CTk):
         average = sum(subject["score"] for subject in subjects) / len(subjects)
         average_label = customtkinter.CTkLabel(self, text=f"Average score: ({average:.2f}%) - Grade: ({percent_to_letter(average)})", font=customtkinter.CTkFont(size=20))
         average_label.pack(pady=10)
+
+
+        highest_subject = find_highest_subject(subjects)
+        if highest_subject:
+            highest_label = customtkinter.CTkLabel(self, text=f"Highest Subject: {highest_subject['code']} - {highest_subject['name']}: ({highest_subject['score']}%) - Grade: ({percent_to_letter(highest_subject['score'])})", font=customtkinter.CTkFont(size=20))
+            highest_label.pack(pady=10)
 
 
 app = Dashboard()
