@@ -35,6 +35,12 @@ def find_highest_subject(subjects_list):
         return None  # Handles empty list scenario safely
     return max(subjects_list, key=lambda x: x["score"])
 
+#define a function to find the lowest subject
+def find_lowest_subject(subjects_list):
+    if not subjects_list:
+        return None  # Handles empty list scenario safely
+    return min(subjects_list, key=lambda x: x["score"])
+
 #defined subjects with their scores
 subjects = [
     {"id":1, "code" : "CSP1114", "name": "Programming", "score": 76},
@@ -63,6 +69,15 @@ class Dashboard(customtkinter.CTk):
         if highest_subject:
             highest_label = customtkinter.CTkLabel(self, text=f"Highest Subject: {highest_subject['code']} - {highest_subject['name']}: ({highest_subject['score']}%) - Grade: ({percent_to_letter(highest_subject['score'])})", font=customtkinter.CTkFont(size=20))
             highest_label.pack(pady=10)
+
+
+
+        lowest_subject = find_lowest_subject(subjects)
+        if lowest_subject:
+            lowest_label = customtkinter.CTkLabel(self, text=f"Lowest Subject: {lowest_subject['code']} - {lowest_subject['name']}: ({lowest_subject['score']}%) - Grade: ({percent_to_letter(lowest_subject['score'])})", font=customtkinter.CTkFont(size=20))
+            lowest_label.pack(pady=10)
+
+
 
 
 app = Dashboard()
