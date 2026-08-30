@@ -44,14 +44,13 @@ class Dashboard(customtkinter.CTk):
         self.title("MMU Academic Planner")
         self.geometry("900x450")
 
-        print(percent_to_letter(-10))
         for subject in subjects:
-            row_text = f'{subject["code"]} - {subject["name"]}: {subject["score"]}%'
+            row_text = f'{subject["code"]} - {subject["name"]}: ({subject["score"]}%) - Grade: ({percent_to_letter(subject["score"])})'
             row = customtkinter.CTkLabel(self, text=row_text, font=customtkinter.CTkFont(size=20))
             row.pack(pady=10)
 
         average = sum(subject["score"] for subject in subjects) / len(subjects)
-        average_label = customtkinter.CTkLabel(self, text=f"Average score: {average:.2f}", font=customtkinter.CTkFont(size=20))
+        average_label = customtkinter.CTkLabel(self, text=f"Average score: ({average:.2f}%) - Grade: ({percent_to_letter(average)})", font=customtkinter.CTkFont(size=20))
         average_label.pack(pady=10)
 
 
