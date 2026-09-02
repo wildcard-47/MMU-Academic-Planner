@@ -5,7 +5,7 @@ from PIL import Image
 # MAIN WINDOW
 
 app = ctk.CTk()
-app.geometry("750x500")
+app.geometry("800x700")
 app.title("GRADE PLANNER")
 
 
@@ -20,7 +20,7 @@ home_screen.pack(fill="both", expand=True)
 
 background_image = ctk.CTkImage(
     light_image=Image.open("background.png"),
-    size=(750, 500)
+    size=(800, 700)
 )
 
 background = ctk.CTkLabel(
@@ -166,7 +166,7 @@ calculate_overall_screen = ctk.CTkFrame(app)
 
 calculate_overall_background_image = ctk.CTkImage(
     light_image=Image.open("background.png"),
-    size=(750, 500)
+    size=(800, 700)
 )
 
 calculate_overall_background = ctk.CTkLabel(
@@ -183,69 +183,135 @@ calculate_overall_background.place(
 )
 
 
-# CALCULATE OVERALL
+# CALCULATE OVERALL - IMAGE 1
 
 def calculate_overall():
 
     try:
         quiz_score = float(quiz_entry.get())
-        assignment_score = float(assignment_entry.get())
-        midterm_score = float(midterm_entry.get())
+        quiz_weight = float(quiz_weight_entry.get())
 
-        # Check scores
+        assignment_score = float(assignment_entry.get())
+        assignment_weight = float(assignment_weight_entry.get())
+
+        midterm_score = float(midterm_entry.get())
+        midterm_weight = float(midterm_weight_entry.get())
+
+
+        # CHECK SCORES
+
         if not 0 <= quiz_score <= 100:
-            result_label.configure(text="Quiz score must be 0-100")
+            result_label.configure(
+                text="Quiz score must be 0-100"
+            )
             return
 
         if not 0 <= assignment_score <= 100:
-            result_label.configure(text="Assignment score must be 0-100")
+            result_label.configure(
+                text="Assignment score must be 0-100"
+            )
             return
 
         if not 0 <= midterm_score <= 100:
-            result_label.configure(text="Midterm score must be 0-100")
+            result_label.configure(
+                text="Midterm score must be 0-100"
+            )
             return
 
-        # Assessment weights
-        quiz_weight = 20
-        assignment_weight = 20
-        midterm_weight = 20
 
-        # Calculate earned marks
+        # CHECK WEIGHTS
+
+        if not 0 <= quiz_weight <= 100:
+            result_label.configure(
+                text="Quiz weight must be 0-100"
+            )
+            return
+
+        if not 0 <= assignment_weight <= 100:
+            result_label.configure(
+                text="Assignment weight must be 0-100"
+            )
+            return
+
+        if not 0 <= midterm_weight <= 100:
+            result_label.configure(
+                text="Midterm weight must be 0-100"
+            )
+            return
+
+
+        # CALCULATE EARNED MARKS
+
         quiz_earned = quiz_score * quiz_weight / 100
-        assignment_earned = assignment_score * assignment_weight / 100
-        midterm_earned = midterm_score * midterm_weight / 100
 
-        # Current earned
+        assignment_earned = (
+            assignment_score * assignment_weight / 100
+        )
+
+        midterm_earned = (
+            midterm_score * midterm_weight / 100
+        )
+
+
+        # CURRENT EARNED
+
         current_earned = (
             quiz_earned
             + assignment_earned
             + midterm_earned
         )
 
-        # Completed weight
+
+        # COMPLETED WEIGHT
+
         completed_weight = (
             quiz_weight
             + assignment_weight
             + midterm_weight
         )
 
-        # Remaining weight
+
+        # CHECK TOTAL WEIGHT
+
+        if completed_weight > 100:
+            result_label.configure(
+                text="Total weight cannot be more than 100%"
+            )
+            return
+
+
+        # CHECK IF WEIGHT IS 0
+
+        if completed_weight == 0:
+            result_label.configure(
+                text="Please enter at least one weight."
+            )
+            return
+
+
+        # REMAINING WEIGHT
+
         remaining_weight = 100 - completed_weight
 
-        # Current performance
+
+        # CURRENT PERFORMANCE
+
         current_performance = (
             current_earned / completed_weight
         ) * 100
 
-        # Display results
+
+        # DISPLAY RESULTS
+
         result_label.configure(
             text=(
                 f"Current Earned: {current_earned:.2f}%\n"
-                f"Completed Weight: {completed_weight}%\n"
-                f"Remaining Weight: {remaining_weight}%\n"
+                f"Completed Weight: {completed_weight:.2f}%\n"
+                f"Remaining Weight: {remaining_weight:.2f}%\n"
                 f"Current Performance: {current_performance:.2f}%"
             )
         )
+
 
     except ValueError:
         result_label.configure(
@@ -255,17 +321,15 @@ def calculate_overall():
 
 # TITLE
 
-
 title = ctk.CTkLabel(
-   calculate_overall_screen,
-    text="CALCULATE OVERALL CURRENT PERFORMANCE",
+    calculate_overall_screen,
+    text="CALCULATE OVERALL PERFORMANCE",
+    text_color="#BE165F",
     font=("Arial", 24, "bold"),
-    text_color= "#BE165F",
     fg_color="#FBDCEE"
 )
+title.pack(pady=(10, 20))
 
-
-title.pack(pady=15)
 
 
 
