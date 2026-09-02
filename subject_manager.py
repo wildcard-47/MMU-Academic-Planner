@@ -16,6 +16,27 @@ def calculate_subject_performance(subject_assessments):
         "remaining_weight": sum(a["weight"] for a in remaining),
     }
 
+def validate_weight(value):
+    try:
+        weight = float(value)
+    except ValueError:
+        return None, "Weight must be a number."
+    if not 0 <= weight <= 100:
+        return None, "Weight must be between 0 and 100."
+    return weight, None
+
+
+def validate_score(value):
+    if value == "":
+        return None, None
+    try:
+        score = float(value)
+    except ValueError:
+        return None, "Score must be a number."
+    if not 0 <= score <= 100:
+        return None, "Score must be between 0 and 100."
+    return score, None
+
 class SubjectManagerFrame(ctk.CTkFrame):
     def __init__(self, master):
         super().__init__(master)
