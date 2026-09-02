@@ -139,12 +139,86 @@ class SubjectManagerFrame(ctk.CTkFrame):
         self.selected_subject_id = subject_id
         self.refresh_assessments()
 
+    def add_assessment(self):
+        global _next_assessment_id
+        if self.selected_subject_id is None:
+            self.show_error("Select a subject first.")
+            return
+
+        weight, weight_error = validate_weight(self.assess_weight.get())
+        if weight_error:
+            self.show_error(weight_error)
+            return
+
+        score, score_error = validate_score(self.assess_score.get())
+        if score_error:
+            self.show_error(score_error)
+            return
+
+        name = self.assess_name.get().strip()
+        if not name:
+            self.show_error("Assessment name is required.")
+            return
+
+        existing = [a for a in assessments if a["subject_id"] == self.selected_subject_id]
+        if sum(a["weight"] for a in existing) + weight > 100:
+            self.show_error("Total weight for this subject would exceed 100%.")
+            return
+
+        assessments.append({
+            "id": _next_assessment_id,
+            "subject_id": self.selected_subject_id,
+            "name": name,
+            "weight": weight,
+            "score": score,
+        })
+        _next_assessment_id += 1
+        self.assess_name.delete(0, "end")
+        self.assess_weight.delete(0, "end")
+        self.assess_score.delete(0, "end")
+        self.show_error("")
+        self.refresh_assessments()
+
+    def refresh_assessments(self):
+        for widget in self.assessments_frame.winfo_children():
+            widget.destroy()
+
+        if self.selected_subject_id is None:
+            self.summary_label.configure(text="Select a subject to view its assessments.")
+            return
+
+        subject_assessments = [a for a in assessments if a["subject_id"] == self.selected_subject_id]
+        for a in subject_assessments:
+            row = ctk.CTkFrame(self.assessments_frame)
+            row.pack(fill="x", pady=4)
+            score_text = f'{a["score"]}%' if a["score"] is not None else "not yet taken"
+            ctk.CTkLabel(
+                row, text=f'{a["name"]} — weight {a["weight"]}% — score {score_text}'
+            ).pack(side="left", padx=5, fill="x", expand=True)
+            ctk.CTkButton(
+                row, text="Delete", width=60, fg_color="darkred",
+                command=lambda a=a: self.remove_assessment(a["id"]),
+            ).pack(side="left", padx=5)
+
+        performance = calculate_subject_performance(subject_assessments)
+        self.summary_label.configure(
+            text=(
+                f'Current earned: {performance["earned"]:.1f}%  |  '
+                f'Completed weight: {performance["completed_weight"]:.0f}%  |  '
+                f'Remaining weight: {performance["remaining_weight"]:.0f}%'
+            )
+        )
+
+    def remove_assessment(self, assessment_id):
+        assessments[:] = [a for a in assessments if a["id"] != assessment_id]
+        self.refresh_assessments()
+
 
 if __name__ == "__main__":
     ctk.set_appearance_mode("System")
     ctk.set_default_color_theme("blue")
     root = ctk.CTk()
-    root.title("Subject Manager (prototype)")
-    root.geometry("500x450")
+    root.title("Subject & Assessment Manager (Week 3)")
+    root.geometry("750x520")
     SubjectManagerFrame(root).pack(fill="both", expand=True)
     root.mainloop()
