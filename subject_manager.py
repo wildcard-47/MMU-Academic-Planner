@@ -16,6 +16,7 @@ def calculate_subject_performance(subject_assessments):
         "remaining_weight": sum(a["weight"] for a in remaining),
     }
 
+
 def validate_weight(value):
     try:
         weight = float(value)
@@ -36,6 +37,7 @@ def validate_score(value):
     if not 0 <= score <= 100:
         return None, "Score must be between 0 and 100."
     return score, None
+
 
 class SubjectManagerFrame(ctk.CTkFrame):
 
@@ -92,22 +94,50 @@ class SubjectManagerFrame(ctk.CTkFrame):
         self.error_label.configure(text=message)
 
     def add_subject(self):
+        global _next_subject_id
         name = self.name_entry.get().strip()
         code = self.code_entry.get().strip()
         if not name or not code:
+            self.show_error("Subject name and code are required.")
             return
-        subjects.append({"name": name, "code": code})
+        subjects.append({"id": _next_subject_id, "name": name, "code": code})
+        _next_subject_id += 1
         self.name_entry.delete(0, "end")
         self.code_entry.delete(0, "end")
+        self.show_error("")
         self.refresh_subjects()
 
     def refresh_subjects(self):
         for widget in self.subjects_frame.winfo_children():
             widget.destroy()
         for subject in subjects:
-            ctk.CTkLabel(self.subjects_frame, text=f'{subject["name"]} ({subject["code"]})').pack(
-                anchor="w", padx=10, pady=4
-            )
+            row = ctk.CTkFrame(self.subjects_frame)
+            row.pack(fill="x", pady=4)
+            ctk.CTkButton(
+                row,
+                text=f'{subject["name"]} ({subject["code"]})',
+                command=lambda s=subject: self.select_subject(s["id"]),
+            ).pack(side="left", padx=(0, 5), fill="x", expand=True)
+            ctk.CTkButton(
+                row, text="Delete", width=60, fg_color="darkred",
+                command=lambda s=subject: self.remove_subject(s["id"]),
+            ).pack(side="left")
+        if self.selected_subject_id is not None and not any(
+            s["id"] == self.selected_subject_id for s in subjects
+        ):
+            self.selected_subject_id = None
+        self.refresh_assessments()
+
+    def remove_subject(self, subject_id):
+        subjects[:] = [s for s in subjects if s["id"] != subject_id]
+        assessments[:] = [a for a in assessments if a["subject_id"] != subject_id]
+        if self.selected_subject_id == subject_id:
+            self.selected_subject_id = None
+        self.refresh_subjects()
+
+    def select_subject(self, subject_id):
+        self.selected_subject_id = subject_id
+        self.refresh_assessments()
 
 
 if __name__ == "__main__":
