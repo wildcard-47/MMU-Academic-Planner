@@ -1,18 +1,16 @@
 import customtkinter as ctk
 from PIL import Image
 
-# =========================
+
 # MAIN WINDOW
-# =========================
 
 app = ctk.CTk()
 app.geometry("750x500")
 app.title("GRADE PLANNER")
 
 
-# =========================
+
 # SCREEN 1 - HOME
-# =========================
 
 home_screen = ctk.CTkFrame(app)
 home_screen.pack(fill="both", expand=True)
@@ -38,9 +36,131 @@ background.place(
     relheight=1
 )
 
-# =========================
+# OPEN SCREEN 2 ( FROM IMAGE 1)
+
+def open_image1_screen():
+    home_screen.pack_forget()
+    target_screen.pack(fill="both", expand=True)
+
+# IMAGE 1 
+
+image1 = ctk.CTkImage(
+    light_image=Image.open("image 1.png"),
+    size=(150, 150)
+)
+
+image1_button = ctk.CTkButton(
+    home_screen,
+    text="",
+    image=image1,
+    width=150,
+    height=150,
+    fg_color="pink",
+    hover_color="yellow",
+    command=open_image1_screen
+)
+
+image1_button.place(
+    relx=0.5,
+    rely=0.5,
+    anchor="center"
+)
+
+# IMAGE 2 
+
+
+image2 = ctk.CTkImage(
+    light_image=Image.open("image 2.png"),
+    size=(160, 100)
+)
+
+image2_button = ctk.CTkButton(
+    home_screen,
+    text="",
+    image=image2,
+    width=160,
+    height=100,
+    fg_color="pink",
+    hover_color="yellow"
+)
+
+image2_button.place(
+    relx=0.5,
+    rely=0.18,
+    anchor="center"
+)
+
+# IMAGE 3
+
+image3 = ctk.CTkImage(
+    light_image=Image.open("image 3.png"),
+    size=(160, 100)
+)
+
+image3_button = ctk.CTkButton(
+    home_screen,
+    text="",
+    image=image3,
+    width=160,
+    height=100,
+    fg_color="pink",
+    hover_color="yellow"
+)
+
+image3_button.place(
+    relx=0.18,
+    rely=0.5,
+    anchor="center"
+)
+
+# IMAGE 4 
+
+image4 = ctk.CTkImage(
+    light_image=Image.open("image 4.png"),
+    size=(160, 100)
+)
+
+image4_button = ctk.CTkButton(
+    home_screen,
+    text="",
+    image=image4,
+    width=160,
+    height=100,
+    fg_color="pink",
+    hover_color="yellow"
+)
+
+image4_button.place(
+    relx=0.82,
+    rely=0.5,
+    anchor="center"
+)
+
+# IMAGE 5 
+
+
+image5 = ctk.CTkImage(
+    light_image=Image.open("image 5.png"),
+    size=(160, 100)
+)
+
+image5_button = ctk.CTkButton(
+    home_screen,
+    text="",
+    image=image5,
+    width=160,
+    height=100,
+    fg_color="pink",
+    hover_color="yellow"
+)
+
+image5_button.place(
+    relx=0.5,
+    rely=0.82,
+    anchor="center"
+)
+
 # SCREEN 2 - background 2
-# =========================
 
 target_screen = ctk.CTkFrame(app)
 # SCREEN 2 BACKGROUND
@@ -64,27 +184,7 @@ target_background.place(
 )
 
 
-# =========================
-# OPEN SCREEN 
-# =========================
-
-def open_image1_screen():
-    home_screen.pack_forget()
-    target_screen.pack(fill="both", expand=True)
-
-
-# =========================
-# BACK TO HOME
-# =========================
-
-def back_to_home():
-    target_screen.pack_forget()
-    home_screen.pack(fill="both", expand=True)
-
-
-# =========================
 # CALCULATE OVERALL
-# =========================
 
 def calculate_overall():
 
@@ -154,9 +254,8 @@ def calculate_overall():
         )
 
 
-# =========================
 # TITLE
-# =========================
+
 
 title = ctk.CTkLabel(
     target_screen,
@@ -167,9 +266,9 @@ title = ctk.CTkLabel(
 title.pack(pady=15)
 
 
-# =========================
+
 # QUIZ
-# =========================
+
 
 quiz_label = ctk.CTkLabel(
     target_screen,
@@ -186,9 +285,9 @@ quiz_entry = ctk.CTkEntry(
 quiz_entry.pack(pady=5)
 
 
-# =========================
+
 # ASSIGNMENT
-# =========================
+
 
 assignment_label = ctk.CTkLabel(
     target_screen,
@@ -205,9 +304,9 @@ assignment_entry = ctk.CTkEntry(
 assignment_entry.pack(pady=5)
 
 
-# =========================
+
 # MIDTERM
-# =========================
+
 
 midterm_label = ctk.CTkLabel(
     target_screen,
@@ -222,11 +321,12 @@ midterm_entry = ctk.CTkEntry(
 )
 
 midterm_entry.pack(pady=5)
+                  
 
 
-# =========================
+
 # CALCULATE BUTTON
-# =========================
+
 
 calculate_button = ctk.CTkButton(
     target_screen,
@@ -237,9 +337,9 @@ calculate_button = ctk.CTkButton(
 calculate_button.pack(pady=10)
 
 
-# =========================
+
 # RESULT
-# =========================
+
 
 result_label = ctk.CTkLabel(
     target_screen,
@@ -249,10 +349,16 @@ result_label = ctk.CTkLabel(
 
 result_label.pack(pady=5)
 
+# BACK TO HOME
 
-# =========================
+
+def back_to_home():
+    target_screen.pack_forget()
+    home_screen.pack(fill="both", expand=True)
+
+
 # BACK BUTTON
-# =========================
+
 
 back_button = ctk.CTkButton(
     target_screen,
@@ -263,135 +369,6 @@ back_button = ctk.CTkButton(
 back_button.pack(pady=10)
 
 
-# =========================
-# IMAGE 1 
-# =========================
-
-image1 = ctk.CTkImage(
-    light_image=Image.open("image 1.png"),
-    size=(150, 150)
-)
-
-image1_button = ctk.CTkButton(
-    home_screen,
-    text="",
-    image=image1,
-    width=150,
-    height=150,
-    fg_color="pink",
-    hover_color="yellow",
-    command=open_image1_screen
-)
-
-image1_button.place(
-    relx=0.5,
-    rely=0.5,
-    anchor="center"
-)
-
-
-# =========================
-# IMAGE 2 
-# =========================
-
-image2 = ctk.CTkImage(
-    light_image=Image.open("image 2.png"),
-    size=(160, 100)
-)
-
-image2_button = ctk.CTkButton(
-    home_screen,
-    text="",
-    image=image2,
-    width=160,
-    height=100,
-    fg_color="pink",
-    hover_color="yellow"
-)
-
-image2_button.place(
-    relx=0.5,
-    rely=0.18,
-    anchor="center"
-)
-
-
-# =========================
-# IMAGE 3
-# =========================
-
-image3 = ctk.CTkImage(
-    light_image=Image.open("image 3.png"),
-    size=(160, 100)
-)
-
-image3_button = ctk.CTkButton(
-    home_screen,
-    text="",
-    image=image3,
-    width=160,
-    height=100,
-    fg_color="pink",
-    hover_color="yellow"
-)
-
-image3_button.place(
-    relx=0.18,
-    rely=0.5,
-    anchor="center"
-)
-
-
-# =========================
-# IMAGE 4 
-# =========================
-
-image4 = ctk.CTkImage(
-    light_image=Image.open("image 4.png"),
-    size=(160, 100)
-)
-
-image4_button = ctk.CTkButton(
-    home_screen,
-    text="",
-    image=image4,
-    width=160,
-    height=100,
-    fg_color="pink",
-    hover_color="yellow"
-)
-
-image4_button.place(
-    relx=0.82,
-    rely=0.5,
-    anchor="center"
-)
-
-
-# =========================
-# IMAGE 5 
-# =========================
-
-image5 = ctk.CTkImage(
-    light_image=Image.open("image 5.png"),
-    size=(160, 100)
-)
-
-image5_button = ctk.CTkButton(
-    home_screen,
-    text="",
-    image=image5,
-    width=160,
-    height=100,
-    fg_color="pink",
-    hover_color="yellow"
-)
-
-image5_button.place(
-    relx=0.5,
-    rely=0.82,
-    anchor="center"
-)
 
 
 app.mainloop()
