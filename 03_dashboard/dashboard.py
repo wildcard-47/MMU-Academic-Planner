@@ -55,6 +55,13 @@ class Dashboard(customtkinter.CTk):
         self.title("MMU Academic Planner")
         self.geometry("900x450")
 
+
+        # Header Title
+        self.title_label = customtkinter.CTkLabel(
+            self, text="Academic Dashboard", font=customtkinter.CTkFont(size=24, weight="bold")
+        )
+        self.title_label.pack(pady=20)
+
         for subject in subjects:
             row_text = f'{subject["code"]} - {subject["name"]}: ({subject["score"]}%) - Grade: ({percent_to_letter(subject["score"])})'
             row = customtkinter.CTkLabel(self, text=row_text, font=customtkinter.CTkFont(size=20))
