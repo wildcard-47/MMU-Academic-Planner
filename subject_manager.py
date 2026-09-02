@@ -38,26 +38,58 @@ def validate_score(value):
     return score, None
 
 class SubjectManagerFrame(ctk.CTkFrame):
+
     def __init__(self, master):
         super().__init__(master)
+        self.selected_subject_id = None
         self._build_layout()
         self.refresh_subjects()
 
     def _build_layout(self):
         ctk.CTkLabel(
-            self, text="Subject Manager (prototype)", font=ctk.CTkFont(size=20, weight="bold")
+            self, text="Subject & Assessment Manager", font=ctk.CTkFont(size=20, weight="bold")
         ).pack(pady=(15, 10))
 
-        form = ctk.CTkFrame(self)
-        form.pack(pady=10)
-        self.name_entry = ctk.CTkEntry(form, placeholder_text="Subject name")
-        self.name_entry.pack(side="left", padx=5)
-        self.code_entry = ctk.CTkEntry(form, placeholder_text="Subject code")
-        self.code_entry.pack(side="left", padx=5)
-        ctk.CTkButton(form, text="Add Subject", command=self.add_subject).pack(side="left", padx=5)
+        top = ctk.CTkFrame(self)
+        top.pack(fill="x", padx=15)
+        self.name_entry = ctk.CTkEntry(top, placeholder_text="Subject name")
+        self.name_entry.pack(side="left", padx=5, pady=10)
+        self.code_entry = ctk.CTkEntry(top, placeholder_text="Subject code")
+        self.code_entry.pack(side="left", padx=5, pady=10)
+        ctk.CTkButton(top, text="Add Subject", command=self.add_subject).pack(side="left", padx=5)
 
-        self.subjects_frame = ctk.CTkScrollableFrame(self, width=400, height=250)
-        self.subjects_frame.pack(padx=15, pady=15, fill="both", expand=True)
+        body = ctk.CTkFrame(self, fg_color="transparent")
+        body.pack(fill="both", expand=True, padx=15, pady=10)
+
+        self.subjects_frame = ctk.CTkScrollableFrame(body, width=260, label_text="Subjects")
+        self.subjects_frame.pack(side="left", fill="y", padx=(0, 10))
+
+        right = ctk.CTkFrame(body, fg_color="transparent")
+        right.pack(side="left", fill="both", expand=True)
+
+        form = ctk.CTkFrame(right)
+        form.pack(fill="x", pady=(0, 10))
+        self.assess_name = ctk.CTkEntry(form, placeholder_text="Assessment name")
+        self.assess_name.grid(row=0, column=0, padx=5, pady=10)
+        self.assess_weight = ctk.CTkEntry(form, placeholder_text="Weight %")
+        self.assess_weight.grid(row=0, column=1, padx=5, pady=10)
+        self.assess_score = ctk.CTkEntry(form, placeholder_text="Score % (blank if not taken)")
+        self.assess_score.grid(row=0, column=2, padx=5, pady=10)
+        ctk.CTkButton(form, text="Add Assessment", command=self.add_assessment).grid(
+            row=0, column=3, padx=5
+        )
+
+        self.assessments_frame = ctk.CTkScrollableFrame(right, label_text="Assessments")
+        self.assessments_frame.pack(fill="both", expand=True)
+
+        self.summary_label = ctk.CTkLabel(right, text="", font=ctk.CTkFont(size=14, weight="bold"))
+        self.summary_label.pack(pady=10)
+
+        self.error_label = ctk.CTkLabel(self, text="", text_color="red")
+        self.error_label.pack(pady=(0, 10))
+
+    def show_error(self, message):
+        self.error_label.configure(text=message)
 
     def add_subject(self):
         name = self.name_entry.get().strip()
