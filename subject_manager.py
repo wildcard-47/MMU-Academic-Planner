@@ -1,9 +1,20 @@
 import customtkinter as ctk
 
-#prototype: in-memory only, no SQLite yet, no assessments yet.
-# Just proves the subject list can be created/viewed.
 subjects = []
+assessments = []
+_next_subject_id = 1
+_next_assessment_id = 1
 
+
+def calculate_subject_performance(subject_assessments):
+    completed = [a for a in subject_assessments if a["score"] is not None]
+    remaining = [a for a in subject_assessments if a["score"] is None]
+    earned = sum(a["weight"] * a["score"] / 100 for a in completed)
+    return {
+        "earned": earned,
+        "completed_weight": sum(a["weight"] for a in completed),
+        "remaining_weight": sum(a["weight"] for a in remaining),
+    }
 
 class SubjectManagerFrame(ctk.CTkFrame):
     def __init__(self, master):
