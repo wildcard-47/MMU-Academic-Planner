@@ -39,7 +39,7 @@ background.place(
 )
 
 # =========================
-# SCREEN 2 - GRADE TARGET
+# SCREEN 2 - background 2
 # =========================
 
 target_screen = ctk.CTkFrame(app)
@@ -65,7 +65,7 @@ target_background.place(
 
 
 # =========================
-# OPEN SCREEN 2
+# OPEN SCREEN 
 # =========================
 
 def open_image1_screen():
@@ -264,7 +264,7 @@ back_button.pack(pady=10)
 
 
 # =========================
-# IMAGE 1 - CENTER
+# IMAGE 1 
 # =========================
 
 image1 = ctk.CTkImage(
@@ -291,7 +291,7 @@ image1_button.place(
 
 
 # =========================
-# IMAGE 2 - TOP
+# IMAGE 2 
 # =========================
 
 image2 = ctk.CTkImage(
@@ -317,7 +317,7 @@ image2_button.place(
 
 
 # =========================
-# IMAGE 3 - LEFT
+# IMAGE 3
 # =========================
 
 image3 = ctk.CTkImage(
@@ -343,7 +343,7 @@ image3_button.place(
 
 
 # =========================
-# IMAGE 4 - RIGHT
+# IMAGE 4 
 # =========================
 
 image4 = ctk.CTkImage(
@@ -369,7 +369,7 @@ image4_button.place(
 
 
 # =========================
-# IMAGE 5 - BOTTOM
+# IMAGE 5 
 # =========================
 
 image5 = ctk.CTkImage(
@@ -393,9 +393,5 @@ image5_button.place(
     anchor="center"
 )
 
-
-# =========================
-# START
-# =========================
 
 app.mainloop()
