@@ -36,11 +36,11 @@ background.place(
     relheight=1
 )
 
-# OPEN SCREEN 2 ( FROM IMAGE 1)
+# OPEN SCREEN  ( FROM IMAGE 1)
 
 def open_image1_screen():
     home_screen.pack_forget()
-    target_screen.pack(fill="both", expand=True)
+    calculate_overall_screen.pack(fill="both", expand=True)
 
 # IMAGE 1 
 
@@ -162,21 +162,20 @@ image5_button.place(
 
 # SCREEN 2 - background 2
 
-target_screen = ctk.CTkFrame(app)
-# SCREEN 2 BACKGROUND
+calculate_overall_screen = ctk.CTkFrame(app)
 
-target_background_image = ctk.CTkImage(
+calculate_overall_background_image = ctk.CTkImage(
     light_image=Image.open("background.png"),
     size=(750, 500)
 )
 
-target_background = ctk.CTkLabel(
-    target_screen,
+calculate_overall_background = ctk.CTkLabel(
+    calculate_overall_screen,
     text="",
-    image=target_background_image
+    image=calculate_overall_background_image
 )
 
-target_background.place(
+calculate_overall_background.place(
     x=0,
     y=0,
     relwidth=1,
@@ -258,10 +257,13 @@ def calculate_overall():
 
 
 title = ctk.CTkLabel(
-    target_screen,
-    text="GRADE TARGET & WHAT-IF",
-    font=("Arial", 28, "bold")
+   calculate_overall_screen,
+    text="CALCULATE OVERALL CURRENT PERFORMANCE",
+    font=("Arial", 24, "bold"),
+    text_color= "#BE165F",
+    fg_color="#FBDCEE"
 )
+
 
 title.pack(pady=15)
 
@@ -271,14 +273,18 @@ title.pack(pady=15)
 
 
 quiz_label = ctk.CTkLabel(
-    target_screen,
-    text="Quiz Score (Weight: 20%)"
+   calculate_overall_screen,
+    text="Quiz Score (Weight: 20%)",
+    text_color= "#1DB51B",
+    font=("Arial", 18,),
+    fg_color="#F4F1F1"
 )
+
 
 quiz_label.pack()
 
 quiz_entry = ctk.CTkEntry(
-    target_screen,
+   calculate_overall_screen,
     placeholder_text="Enter score 0-100"
 )
 
@@ -290,14 +296,17 @@ quiz_entry.pack(pady=5)
 
 
 assignment_label = ctk.CTkLabel(
-    target_screen,
-    text="Assignment Score (Weight: 20%)"
+    calculate_overall_screen,
+    text="Assignment Score (Weight: 20%)",
+     text_color= "#411BB5",
+    font=("Arial", 18,),
+    fg_color="#F4F1F1"
 )
 
 assignment_label.pack()
 
 assignment_entry = ctk.CTkEntry(
-    target_screen,
+  calculate_overall_screen,
     placeholder_text="Enter score 0-100"
 )
 
@@ -309,14 +318,18 @@ assignment_entry.pack(pady=5)
 
 
 midterm_label = ctk.CTkLabel(
-    target_screen,
-    text="Midterm Score (Weight: 20%)"
+   calculate_overall_screen,
+    text="Midterm Score (Weight: 20%)",
+    text_color= "#98102B",
+    font=("Arial", 18,),
+    fg_color="#F4F1F1"
 )
+
 
 midterm_label.pack()
 
 midterm_entry = ctk.CTkEntry(
-    target_screen,
+    calculate_overall_screen,
     placeholder_text="Enter score 0-100"
 )
 
@@ -329,7 +342,7 @@ midterm_entry.pack(pady=5)
 
 
 calculate_button = ctk.CTkButton(
-    target_screen,
+   calculate_overall_screen,
     text="CALCULATE OVERALL",
     command=calculate_overall
 )
@@ -342,7 +355,7 @@ calculate_button.pack(pady=10)
 
 
 result_label = ctk.CTkLabel(
-    target_screen,
+   calculate_overall_screen,
     text="Enter your scores and click Calculate Overall",
     font=("Arial", 15)
 )
@@ -353,15 +366,15 @@ result_label.pack(pady=5)
 
 
 def back_to_home():
-    target_screen.pack_forget()
-    home_screen.pack(fill="both", expand=True)
+  calculate_overall_screen.pack_forget()
+  home_screen.pack(fill="both", expand=True)
 
 
 # BACK BUTTON
 
 
 back_button = ctk.CTkButton(
-    target_screen,
+  calculate_overall_screen,
     text="BACK",
     command=back_to_home
 )
