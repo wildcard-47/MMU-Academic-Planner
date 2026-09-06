@@ -1,3 +1,4 @@
+from random import random
 import sqlite3
 
 def create_database_tables():
@@ -94,17 +95,35 @@ def list_students():
         print("Failed to list students:", e)
         return []
 
-def list_assessments_for_student(student_id):
+def list_assessments_for_student(student_name):
     try:
         with sqlite3.connect("database/mmu_academic_planner.db") as conn:
             cursor = conn.cursor()
-            cursor.execute("select s.score_id,a.assessment_name,j.sub_name,j.sub_code,s.score from  scores s join assessments a on s.assessment_id  =a.assessment_id join subjects j on j.sub_code  =a.sub_code WHERE stu_id = ?", (student_id,))
+            cursor.execute("select s.score_id,a.assessment_name,j.sub_name,j.sub_code,s.score from  scores s join assessments a on s.assessment_id  =a.assessment_id join subjects j on j.sub_code  =a.sub_code join students st on st.stu_id =s.stu_id WHERE stu_name = ?", (student_name,))
             assessments = cursor.fetchall()
             return assessments
     except sqlite3.Error as e:
         print("Failed to list assessments for student:", e)
         return []
-    
+
+def fill_assessments_for_all_students():
+    try:
+        with sqlite3.connect("database/mmu_academic_planner.db") as conn:
+            cursor = conn.cursor()
+            cursor.execute("SELECT stu_id FROM students")
+            students = cursor.fetchall()
+            cursor.execute("SELECT assessment_id FROM assessments")
+            assessments = cursor.fetchall()
+
+            for student in students:
+                for assessment in assessments:
+                    cursor.execute("INSERT INTO scores (stu_id, assessment_id, score) VALUES (?, ?, ?)", (student[0], assessment[0], random() * 100))  # Random score between 0 and 100
+            conn.commit()
+            print("Filled assessments for all students successfully.")
+    except sqlite3.Error as e:
+        print("Failed to fill assessments for all students:", e)
+
+
 def init_data():
     clean_database()
     create_database_tables()
@@ -125,6 +144,4 @@ def init_data():
     add_assessment("PHYS101", "Midterm Exam", 30)
     add_assessment("PHYS101", "Final Exam", 70)
 
-    add_score(1, 1, 85.0)
-    add_score(1, 2, 30.0)
-    add_score(1, 3, 60.0)
+    fill_assessments_for_all_students()
