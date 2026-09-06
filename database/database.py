@@ -93,6 +93,17 @@ def list_students():
     except sqlite3.Error as e:
         print("Failed to list students:", e)
         return []
+
+def list_assessments_for_student(student_id):
+    try:
+        with sqlite3.connect("database/mmu_academic_planner.db") as conn:
+            cursor = conn.cursor()
+            cursor.execute("select s.score_id,a.assessment_name,j.sub_name,j.sub_code,s.score from  scores s join assessments a on s.assessment_id  =a.assessment_id join subjects j on j.sub_code  =a.sub_code WHERE stu_id = ?", (student_id,))
+            assessments = cursor.fetchall()
+            return assessments
+    except sqlite3.Error as e:
+        print("Failed to list assessments for student:", e)
+        return []
     
 def init_data():
     clean_database()
