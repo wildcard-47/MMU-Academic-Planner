@@ -126,5 +126,5 @@ def init_data():
     add_assessment("PHYS101", "Final Exam", 70)
 
     add_score(1, 1, 85.0)
-    add_score(1, 2, 90.0)
-    add_score(1, 3, 78.0)
+    add_score(1, 2, 30.0)
+    add_score(1, 3, 60.0)
