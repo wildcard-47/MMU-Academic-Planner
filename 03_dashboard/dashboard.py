@@ -44,8 +44,8 @@ def find_lowest_subject(subjects_list):
 #defined subjects with their scores
 subjects = [
     {"id":1, "code" : "CSP1114", "name": "Programming", "score": 76},
-    {"id":2, "code" : "CMT1134", "name": "Mathematics", "score": 82},
-    {"id":3, "code" : "CPP1113", "name": "Physics", "score": 90},
+    {"id":2, "code" : "CMT1134", "name": "Mathematics", "score": 60},
+    {"id":3, "code" : "CPP1113", "name": "Physics", "score": 39},
 ]
 
 
@@ -66,9 +66,18 @@ class Dashboard(customtkinter.CTk):
             row_text = f'{subject["code"]} - {subject["name"]}: ({subject["score"]}%) - Grade: ({percent_to_letter(subject["score"])})'
             row = customtkinter.CTkLabel(self, text=row_text, font=customtkinter.CTkFont(size=20))
             row.pack(pady=10)
+            #score progress bar
             progress = customtkinter.CTkProgressBar(row, width=180)
             progress.grid(row=0, column=3, padx=(5, 10), pady=8)
             progress.set(subject["score"] / 100)
+
+            #color coding for the progress bar based on the score
+            if subject["score"] >= 70:
+                progress.configure(progress_color="#2fa84f")
+            elif subject["score"] >= 40:
+                progress.configure(progress_color="#e0a800")
+            else:
+                progress.configure(progress_color="#c0392b")
 
         average = sum(subject["score"] for subject in subjects) / len(subjects)
         average_label = customtkinter.CTkLabel(self, text=f"Average score: ({average:.2f}%) - Grade: ({percent_to_letter(average)})", font=customtkinter.CTkFont(size=20))
