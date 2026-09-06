@@ -55,6 +55,8 @@ subjects = [
     {"id":3, "code" : "CPP1113", "name": "Physics", "score": 39},
 ]
 
+def combobox_callback(choice):
+    print(f"Combobox selection: {choice}")
 
 class Dashboard(customtkinter.CTk):
     def __init__(self):
@@ -68,6 +70,14 @@ class Dashboard(customtkinter.CTk):
             self, text="Academic Dashboard", font=customtkinter.CTkFont(size=24, weight="bold")
         )
         self.title_label.pack(pady=20)
+
+        combobox = customtkinter.CTkComboBox(
+            master=self,
+            values=["Student 1", "Student 2", "Student 3"], 
+            command=combobox_callback
+        )
+        combobox.pack(pady=40)
+        combobox.set("Select a Student")
 
         for subject in subjects:
             row_text = f'{subject["code"]} - {subject["name"]}: ({subject["score"]}%) - Grade: ({percent_to_letter(subject["score"])})'

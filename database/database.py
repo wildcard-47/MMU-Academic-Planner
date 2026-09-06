@@ -83,7 +83,17 @@ def clean_database():
     except sqlite3.Error as e:
         print("Failed to clean database:", e)
 
-
+def list_students():
+    try:
+        with sqlite3.connect("database/mmu_academic_planner.db") as conn:
+            cursor = conn.cursor()
+            cursor.execute("SELECT * FROM students")
+            students = cursor.fetchall()
+            return students
+    except sqlite3.Error as e:
+        print("Failed to list students:", e)
+        return []
+    
 def init_data():
     clean_database()
     create_database_tables()
