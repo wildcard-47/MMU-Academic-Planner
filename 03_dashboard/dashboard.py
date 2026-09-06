@@ -6,7 +6,7 @@ from database import database as db
 from grading import percent_to_letter
 
 # Initialize the database with sample data
-#db.init_data()
+db.init_data()
 
 #find the highest assessment for a student
 def find_highest_assessment(assessments):
@@ -56,7 +56,7 @@ class Dashboard(customtkinter.CTk):
             assessment_label = customtkinter.CTkLabel(
                 row_frame,  # Changed from 'self' to 'row_frame'
                 text=f"Subject: {assessment[2]} - Assessment: {assessment[1]} - Score: {assessment[4]}% - Grade: ({percent_to_letter(assessment[4])})", 
-                font=customtkinter.CTkFont(size=20)
+                font=customtkinter.CTkFont(size=16)
             )
             assessment_label.pack(pady=5)
 
@@ -73,13 +73,17 @@ class Dashboard(customtkinter.CTk):
             else:
                 progress.configure(progress_color="red")
 
+            # Add a separator for visual clarity
+            separator = customtkinter.CTkFrame(self.data_frame, height=2, fg_color="gray70")
+            separator.pack(fill="x", padx=40, pady=5)
+
         # MOVED OUTSIDE the for loop - calculate and display averages once
         try:
             average = sum(assessment[4] for assessment in assessments) / len(assessments)
             average_label = customtkinter.CTkLabel(
                 self.data_frame,  # Changed from 'self' to 'self.data_frame'
-                text=f"Average score: ({average:.2f}%) - Grade: ({percent_to_letter(average)})", 
-                font=customtkinter.CTkFont(size=20, weight="bold")
+                text=f"📊 Average score: ({average:.2f}%) - Grade: ({percent_to_letter(average)})", 
+                font=customtkinter.CTkFont(size=18, weight="bold")
             )
             average_label.pack(pady=10)
         except ZeroDivisionError:
@@ -90,8 +94,8 @@ class Dashboard(customtkinter.CTk):
         if highest_subject:
             highest_label = customtkinter.CTkLabel(
                 self.data_frame,  # Changed from 'self' to 'self.data_frame'
-                text=f"Highest Subject: {highest_subject[2]} - {highest_subject[1]}: ({highest_subject[4]}%) - Grade: ({percent_to_letter(highest_subject[4])})", 
-                font=customtkinter.CTkFont(size=20)
+                text=f"🏆 Highest: {highest_subject[2]} - {highest_subject[1]}: ({highest_subject[4]}%) - Grade: ({percent_to_letter(highest_subject[4])})", 
+                font=customtkinter.CTkFont(size=16)
             )
             highest_label.pack(pady=5)
 
@@ -100,15 +104,15 @@ class Dashboard(customtkinter.CTk):
         if lowest_subject:
             lowest_label = customtkinter.CTkLabel(
                 self.data_frame,  # Changed from 'self' to 'self.data_frame'
-                text=f"Lowest Subject: {lowest_subject[2]} - {lowest_subject[1]}: ({lowest_subject[4]}%) - Grade: ({percent_to_letter(lowest_subject[4])})", 
-                font=customtkinter.CTkFont(size=20)
+                text=f"📉 Lowest: {lowest_subject[2]} - {lowest_subject[1]}: ({lowest_subject[4]}%) - Grade: ({percent_to_letter(lowest_subject[4])})", 
+                font=customtkinter.CTkFont(size=16)
             )
             lowest_label.pack(pady=5)
 
     def __init__(self):
         super().__init__()
         self.title("MMU Academic Planner")
-        self.geometry("900x600")  # Increased height for better display
+        self.geometry("1000x600")  # Increased height for better display
 
         # Header Title
         self.title_label = customtkinter.CTkLabel(
@@ -132,9 +136,16 @@ class Dashboard(customtkinter.CTk):
         )
         self.button.pack(padx=20, pady=20)
 
-        # Frame to hold assessment data
-        self.data_frame = customtkinter.CTkFrame(self)
-        self.data_frame.pack(pady=10, fill="both", expand=True, padx=20)
+        # Create a scrollable frame to hold assessment data
+        self.scrollable_frame = customtkinter.CTkScrollableFrame(
+            self,
+            label_text="Assessments List"
+        )
+        self.scrollable_frame.pack(pady=10, fill="both", expand=True, padx=20)
+
+        # Frame to hold assessment data (inside scrollable frame)
+        self.data_frame = customtkinter.CTkFrame(self.scrollable_frame)
+        self.data_frame.pack(fill="both", expand=True)
 
 if __name__ == "__main__":
     app = Dashboard()
