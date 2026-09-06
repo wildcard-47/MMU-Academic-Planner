@@ -100,6 +100,7 @@ def init_data():
     add_student("Mayada")
     add_student("Mohammad")
     add_student("Rin")
+    add_student("Aisha")
 
     add_subject("MATH101", "Mathematics")
     add_subject("CS101", "Programming")

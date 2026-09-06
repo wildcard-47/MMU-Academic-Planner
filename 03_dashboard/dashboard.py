@@ -2,10 +2,10 @@ import customtkinter
 import sys
 import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from database import database
+from database import database as db
 
 # Initialize the database with sample data
-database.init_data()
+db.init_data()
 
 #function to get the grade letter from the score
 def percent_to_letter(score):
@@ -73,7 +73,7 @@ class Dashboard(customtkinter.CTk):
 
         combobox = customtkinter.CTkComboBox(
             master=self,
-            values=["Student 1", "Student 2", "Student 3"], 
+            values=[student[1] for student in db.list_students()], 
             command=combobox_callback
         )
         combobox.pack(pady=40)
