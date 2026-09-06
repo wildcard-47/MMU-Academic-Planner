@@ -84,7 +84,7 @@ def clean_database():
         print("Failed to clean database:", e)
 
 
-def ini_database():
+def init_data():
     clean_database()
     create_database_tables()
     add_student("Mayada")
@@ -106,6 +106,3 @@ def ini_database():
     add_score(1, 1, 85.0)
     add_score(1, 2, 90.0)
     add_score(1, 3, 78.0)
-
-
- 

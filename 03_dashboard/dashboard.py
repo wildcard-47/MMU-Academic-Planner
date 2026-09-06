@@ -1,6 +1,13 @@
 import customtkinter
+import sys
+import os
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from database import database
 
-##function to get the grade letter from the score
+# Initialize the database with sample data
+database.init_data()
+
+#function to get the grade letter from the score
 def percent_to_letter(score):
     if score < 0 or score > 100:
         return "Invalid score"
