@@ -66,6 +66,9 @@ class Dashboard(customtkinter.CTk):
             row_text = f'{subject["code"]} - {subject["name"]}: ({subject["score"]}%) - Grade: ({percent_to_letter(subject["score"])})'
             row = customtkinter.CTkLabel(self, text=row_text, font=customtkinter.CTkFont(size=20))
             row.pack(pady=10)
+            progress = customtkinter.CTkProgressBar(row, width=180)
+            progress.grid(row=0, column=3, padx=(5, 10), pady=8)
+            progress.set(subject["score"] / 100)
 
         average = sum(subject["score"] for subject in subjects) / len(subjects)
         average_label = customtkinter.CTkLabel(self, text=f"Average score: ({average:.2f}%) - Grade: ({percent_to_letter(average)})", font=customtkinter.CTkFont(size=20))
