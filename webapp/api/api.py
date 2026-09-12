@@ -1,10 +1,14 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, FastAPI
 from fastapi.responses import JSONResponse
 
 
 router = APIRouter()
 
+app = FastAPI()
 
+@app.get("/")
+def read_root():
+    return {"message": "Welcome to the MMU Academic Planner API!"}
 
 @router.post("/api/signup")
 def signup(username: str, password: str):
