@@ -3,7 +3,7 @@ import sqlite3
 
 def create_database_tables():
     try:
-        with sqlite3.connect("database/mmu_academic_planner.db") as conn:
+        with sqlite3.connect("webapp/database/mmu_academic_planner.db") as conn:
             cursor = conn.cursor()
             #Create Users table
             cursor.execute("create table if not exists users (id INTEGER PRIMARY KEY AUTOINCREMENT, username text not null, password text not null);")
@@ -33,7 +33,7 @@ def create_database_tables():
        
 def add_user(username, password):
     try:
-        with sqlite3.connect("database/mmu_academic_planner.db") as conn:
+        with sqlite3.connect("webapp/database/mmu_academic_planner.db") as conn:
             cursor = conn.cursor()
             cursor.execute("INSERT INTO users (username, password) VALUES (?, ?)", (username, password))
             conn.commit()
