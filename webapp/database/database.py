@@ -5,6 +5,10 @@ def create_database_tables():
     try:
         with sqlite3.connect("database/mmu_academic_planner.db") as conn:
             cursor = conn.cursor()
+            #Create Users table
+            cursor.execute("create table if not exists users (id INTEGER PRIMARY KEY AUTOINCREMENT, username text not null, password text not null);")
+            conn.commit()
+            print("Users table created successfully.")
             #Create student table
             cursor.execute("create table if not exists students (stu_id integer primary key, stu_name text not null);")
             conn.commit()
