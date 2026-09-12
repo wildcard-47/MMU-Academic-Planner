@@ -30,7 +30,7 @@ def create_database_tables():
 
     except sqlite3.Error as e:
         print("Failed to create database:", e)
-        
+       
 def add_user(username, password):
     try:
         with sqlite3.connect("database/mmu_academic_planner.db") as conn:
@@ -40,7 +40,18 @@ def add_user(username, password):
             print(f"User '{username}' added successfully.")
     except sqlite3.Error as e:
         print("Failed to add user:", e)
-        
+
+def get_user(username):
+    try:
+        with sqlite3.connect("database/mmu_academic_planner.db") as conn:
+            cursor = conn.cursor()
+            cursor.execute("SELECT * FROM users WHERE username = ?", (username,))
+            user = cursor.fetchone()
+            return user
+    except sqlite3.Error as e:
+        print("Failed to get user:", e)
+        return None
+
 
 def add_student(name):
     try:
