@@ -31,6 +31,16 @@ def create_database_tables():
     except sqlite3.Error as e:
         print("Failed to create database:", e)
         
+def add_user(username, password):
+    try:
+        with sqlite3.connect("database/mmu_academic_planner.db") as conn:
+            cursor = conn.cursor()
+            cursor.execute("INSERT INTO users (username, password) VALUES (?, ?)", (username, password))
+            conn.commit()
+            print(f"User '{username}' added successfully.")
+    except sqlite3.Error as e:
+        print("Failed to add user:", e)
+        
 
 def add_student(name):
     try:
