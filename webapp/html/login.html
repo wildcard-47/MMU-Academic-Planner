@@ -1,32 +1,293 @@
-<html>
-    <head>
-        <title>Login</title>
-    </head>
-    <body>
-        <h1>Login</h1>
-        <form id="login-form">
-            <label for="username">Username:</label>
-            <input type="text" id="username" name="username"><br><br>
-            <label for="password">Password:</label>
-            <input type="password" id="password" name="password"><br><br>
-            <input type="submit" value="Login">
-            <p id="error" class="error"></p>
-        </form>
-        <script src="/html/js/api.js"></script>
-        <script>
-            document.getElementById("login-form").addEventListener("submit", async (event) => {
-                event.preventDefault();
-                const username = document.getElementById("username").value;
-                const password = document.getElementById("password").value;
-                const errorEl = document.getElementById("error");
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - MMU Academic Planner</title>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #003366; /* MMU Deep Blue */
+            --primary-accent: #0056b3;
+            --accent-red: #d9232a; /* MMU Red Accent */
+            --bg-light: #f8fafc;
+            --card-bg: #ffffff;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --border-color: #e2e8f0;
+            --error-red: #ef4444;
+        }
 
-                try {
-                    await apiPost("/api/login", { username, password });
-                    window.location.href = "/dashboard";
-                } catch (err) {
-                    alert("Login failed. Please check your credentials.");
-                }
-            });
-        </script>
-    </body>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-light);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Navigation Bar */
+        header {
+            background-color: var(--card-bg);
+            border-bottom: 1px solid var(--border-color);
+            padding: 0.8rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+
+        .logo-container {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            text-decoration: none;
+        }
+
+        .logo-img {
+            height: 38px;
+            width: auto;
+            display: block;
+        }
+
+        .logo-divider {
+            height: 24px;
+            width: 1px;
+            background-color: var(--border-color);
+        }
+
+        .logo-subtitle {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--primary);
+            letter-spacing: -0.01em;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .btn {
+            text-decoration: none;
+            padding: 0.6rem 1.4rem;
+            border-radius: 8px;
+            font-weight: 500;
+            font-size: 0.95rem;
+            transition: all 0.2s ease-in-out;
+            display: inline-block;
+            cursor: pointer;
+            border: none;
+        }
+
+        .btn-signup {
+            background-color: var(--primary);
+            color: white;
+            box-shadow: 0 2px 4px rgba(0, 51, 102, 0.2);
+        }
+
+        .btn-signup:hover {
+            background-color: var(--primary-accent);
+            transform: translateY(-1px);
+        }
+
+        /* Main Container */
+        main {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem 1.5rem;
+        }
+
+        .login-card {
+            background: var(--card-bg);
+            max-width: 420px;
+            width: 100%;
+            padding: 2.5rem;
+            border-radius: 16px;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.01);
+            border: 1px solid var(--border-color);
+        }
+
+        .login-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .login-header h1 {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .login-header p {
+            font-size: 0.95rem;
+            color: var(--text-muted);
+        }
+
+        /* Form Controls */
+        .form-group {
+            margin-bottom: 1.25rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.4rem;
+        }
+
+        .form-group label {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--text-main);
+        }
+
+        .form-group input[type="text"],
+        .form-group input[type="password"] {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 0.95rem;
+            color: var(--text-main);
+            background-color: #fff;
+            transition: all 0.2s ease-in-out;
+            outline: none;
+        }
+
+        .form-group input[type="text"]:focus,
+        .form-group input[type="password"]:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(0, 51, 102, 0.1);
+        }
+
+        .btn-submit {
+            width: 100%;
+            padding: 0.8rem;
+            margin-top: 0.5rem;
+            background-color: var(--primary);
+            color: white;
+            font-size: 1rem;
+            font-weight: 600;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease-in-out;
+        }
+
+        .btn-submit:hover {
+            background-color: var(--primary-accent);
+            transform: translateY(-1px);
+        }
+
+        /* Error Message Display */
+        .error {
+            margin-top: 1rem;
+            font-size: 0.875rem;
+            color: var(--error-red);
+            text-align: center;
+            min-height: 1.25rem;
+        }
+
+        .form-footer {
+            margin-top: 1.5rem;
+            text-align: center;
+            font-size: 0.875rem;
+            color: var(--text-muted);
+        }
+
+        .form-footer a {
+            color: var(--primary);
+            font-weight: 600;
+            text-decoration: none;
+        }
+
+        .form-footer a:hover {
+            text-decoration: underline;
+        }
+
+        /* Footer */
+        footer {
+            text-align: center;
+            padding: 1.5rem;
+            font-size: 0.875rem;
+            color: var(--text-muted);
+            border-top: 1px solid var(--border-color);
+            background-color: var(--card-bg);
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Header Navigation -->
+    <header>
+        <a href="/" class="logo-container">
+            <img src="/html/logo-mmu2x.png" alt="Multimedia University Logo" class="logo-img">
+            <div class="logo-divider"></div>
+            <span class="logo-subtitle">Academic Planner</span>
+        </a>
+        <nav class="nav-links">
+            <a href="/signup" class="btn btn-signup">Sign Up</a>
+        </nav>
+    </header>
+
+    <!-- Main Content -->
+    <main>
+        <div class="login-card">
+            <div class="login-header">
+                <h1>Welcome Back</h1>
+                <p>Sign in to your MMU Academic Planner</p>
+            </div>
+
+            <form id="login-form">
+                <div class="form-group">
+                    <label for="username">Username</label>
+                    <input type="text" id="username" name="username" placeholder="Enter your username" required>
+                </div>
+
+               <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" name="password" placeholder="Enter your password" required>
+                </div>
+
+                <input type="submit" value="Login" class="btn btn-submit">
+                <p id="error" class="error"></p>
+            </form>
+
+            <div class="form-footer">
+                Don't have an account? <a href="/signup">Sign up</a>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer>
+        &copy; 2026 MMU Academic Planner. Built for MMU Students.
+    </footer>
+
+    <!-- JS Logic -->
+    <script src="/html/js/api.js"></script>
+    <script>
+        document.getElementById("login-form").addEventListener("submit", async (event) => {
+            event.preventDefault();
+            const username = document.getElementById("username").value;
+            const password = document.getElementById("password").value;
+            const errorEl = document.getElementById("error");
+
+            try {
+                await apiPost("/api/login", { username, password });
+                window.location.href = "/dashboard";
+            } catch (err) {
+                errorEl.innerText = "Login failed. Please check your credentials.";
+            }
+        });
+    </script>
+</body>
 </html>

@@ -1,11 +1,251 @@
-<html>
+<!DOCTYPE html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MMU Academic Planner</title>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #003366; /* MMU Deep Blue */
+            --primary-accent: #0056b3;
+            --accent-red: #d9232a; /* MMU Red Accent */
+            --bg-light: #f8fafc;
+            --card-bg: #ffffff;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --border-color: #e2e8f0;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-light);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Navigation Bar */
+        header {
+            background-color: var(--card-bg);
+            border-bottom: 1px solid var(--border-color);
+            padding: 0.8rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+
+        /* Logo Styling */
+        .logo-container {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            text-decoration: none;
+        }
+
+        .logo-img {
+            height: 38px; /* Adjusted height to fit nicely in the header */
+            width: auto;
+            display: block;
+        }
+
+        .logo-divider {
+            height: 24px;
+            width: 1px;
+            background-color: var(--border-color);
+        }
+
+        .logo-subtitle {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--primary);
+            letter-spacing: -0.01em;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .btn {
+            text-decoration: none;
+            padding: 0.6rem 1.4rem;
+            border-radius: 8px;
+            font-weight: 500;
+            font-size: 0.95rem;
+            transition: all 0.2s ease-in-out;
+            display: inline-block;
+        }
+
+        .btn-login {
+            color: var(--primary);
+            border: 1px solid var(--border-color);
+            background-color: var(--card-bg);
+        }
+
+        .btn-login:hover {
+            background-color: #f1f5f9;
+            border-color: #cbd5e1;
+        }
+
+        .btn-signup {
+            background-color: var(--primary);
+            color: white;
+            box-shadow: 0 2px 4px rgba(0, 51, 102, 0.2);
+        }
+
+        .btn-signup:hover {
+            background-color: var(--primary-accent);
+            transform: translateY(-1px);
+        }
+
+        /* Hero Section */
+        main {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 3rem 1.5rem;
+        }
+
+        .hero-card {
+            background: var(--card-bg);
+            max-width: 800px;
+            width: 100%;
+            padding: 3.5rem 2.5rem;
+            border-radius: 16px;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.01);
+            border: 1px solid var(--border-color);
+            text-align: center;
+        }
+
+        .hero-card h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 1rem;
+            line-height: 1.2;
+        }
+
+        .hero-card p {
+            font-size: 1.125rem;
+            color: var(--text-muted);
+            margin-bottom: 2rem;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+            line-height: 1.6;
+        }
+
+        .cta-group {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            margin-bottom: 3rem;
+        }
+
+        .cta-group .btn {
+            padding: 0.8rem 2rem;
+            font-size: 1rem;
+        }
+
+        /* Features Grid */
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 1.5rem;
+            margin-top: 2.5rem;
+            padding-top: 2rem;
+            border-top: 1px solid var(--border-color);
+            text-align: left;
+        }
+
+        .feature-item {
+            padding: 1rem;
+        }
+
+        .feature-item h3 {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--primary);
+            margin-bottom: 0.4rem;
+        }
+
+        .feature-item p {
+            font-size: 0.875rem;
+            color: var(--text-muted);
+            margin-bottom: 0;
+        }
+
+        /* Footer */
+        footer {
+            text-align: center;
+            padding: 1.5rem;
+            font-size: 0.875rem;
+            color: var(--text-muted);
+            border-top: 1px solid var(--border-color);
+            background-color: var(--card-bg);
+        }
+    </style>
 </head>
 <body>
-    <h1>MMU Academic Planner</h1>
-    <p>Welcome to the MMU Academic Planner!</p>
-    <a href="/login">Login</a>
-    <a href="/signup">Signup</a>
+
+    <!-- Header Navigation -->
+    <header>
+        <div class="logo-container">
+            <img src="/html/logo-mmu2x.png" alt="Multimedia University Logo" class="logo-img">
+            <div class="logo-divider"></div>
+            <span class="logo-subtitle">Academic Planner</span>
+        </div>
+        <nav class="nav-links">
+            <a href="/login" class="btn btn-login">Login</a>
+            <a href="/signup" class="btn btn-signup">Sign Up</a>
+        </nav>
+    </header>
+
+    <!-- Main Content -->
+    <main>
+        <div class="hero-card">
+            <h1>Master Your Grades at MMU</h1>
+            <p>Calculate your GPA/CGPA, forecast target grades, and track your trimester progress effortlessly with the MMU Academic Planner.</p>
+            
+            <div class="cta-group">
+                <a href="/signup" class="btn btn-signup">Get Started Free</a>
+                <a href="/login" class="btn btn-login">Existing Student Login</a>
+            </div>
+
+            <!-- Highlights -->
+            <div class="features-grid">
+                <div class="feature-item">
+                    <h3>⚡ Accurate GPA & CGPA</h3>
+                    <p>Designed specifically for Multimedia University grading scales and credit weightings.</p>
+                </div>
+                <div class="feature-item">
+                    <h3>🎯 Target Forecaster</h3>
+                    <p>Determine exact marks needed in final exams to hit your target letter grade.</p>
+                </div>
+                <div class="feature-item">
+                    <h3>📊 Trimester Analytics</h3>
+                    <p>Keep track of all your subjects and academic milestones in one organized hub.</p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer>
+        &copy; 2026 MMU Academic Planner. Built for MMU Students.
+    </footer>
+
 </body>
 </html>
