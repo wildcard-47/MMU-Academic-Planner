@@ -1,28 +1,34 @@
-from fastapi import APIRouter, FastAPI
+from fastapi import APIRouter, FastAPI, Request, HTTPException
 from fastapi.responses import JSONResponse
-
+from pydantic import BaseModel
 
 router = APIRouter()
 
 app = FastAPI()
+
+class Credentials(BaseModel):
+    username: str
+    password: str
+
 
 @app.get("/")
 def read_root():
     return {"message": "Welcome to the MMU Academic Planner API!"}
 
 @router.post("/api/signup")
-def signup(username: str, password: str):
+def signup(credentials: Credentials):
     from auth.auth import signup as auth_signup
-    success = auth_signup(username, password)
+    success = auth_signup(credentials.username, credentials.password)
     if success:
         return JSONResponse(content={"message": "Signup successful"}, status_code=200)
     else:
         return JSONResponse(content={"message": "Signup failed"}, status_code=400)
 
+
 @router.post("/api/login")
-def login(username: str, password: str):
+def login(credentials: Credentials):
     from auth.auth import login as auth_login
-    success = auth_login(username, password)
+    success = auth_login(credentials.username, credentials.password)
     if success:
         return JSONResponse(content={"message": "Login successful"}, status_code=200)
     else:

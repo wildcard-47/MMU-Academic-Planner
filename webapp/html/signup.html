@@ -1,16 +1,44 @@
-<html>
-    <header>
-        <title>Sign Up</title>
-    </header>
-    <body>
-        <h1>Sign Up</h1>
-        <form>
-            <label for="username">Username:</label>
-            <input type="text" id="username" name="username"><br><br>
-            <label for="email">Email:</label>
-            <input type="email" id="email" name="email"><br><br>
-            <label for="password">Password:</label>
-            <input type="password" id="password" name="password"><br><br>
-            <input type="submit" value="Sign Up">
-        </form> 
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Sign up — Academic Planner</title>
+  <link rel="stylesheet" href="/html/css/style.css">
+</head>
+<body>
+  <div class="auth-box">
+    <h1>Create Account</h1>
+    <form id="signup-form">
+      <input type="text" id="username" placeholder="Username" required>
+      <input type="password" id="password" placeholder="Password (min 6 characters)" required>
+      <input type="password" id="confirm" placeholder="Confirm password" required>
+      <button type="submit">Sign Up</button>
+    </form>
+    <p id="error" class="error"></p>
+    <p>Already have an account? <a href="/login">Log in</a></p>
+  </div>
+
+  <script src="/html/js/api.js"></script>
+  <script>
+    document.getElementById("signup-form").addEventListener("submit", async (event) => {
+      event.preventDefault();
+      const username = document.getElementById("username").value;
+      const password = document.getElementById("password").value;
+      const confirm = document.getElementById("confirm").value;
+      const errorEl = document.getElementById("error");
+
+      if (password !== confirm) {
+        errorEl.textContent = "Passwords do not match.";
+        return;
+      }
+
+      try {
+        await apiPost("/api/signup", { username, password });
+        window.location.href = "/login";
+      } catch (err) {
+        errorEl.textContent = err.message;
+      }
+    });
+  </script>
+</body>
 </html>

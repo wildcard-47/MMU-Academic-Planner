@@ -4,12 +4,29 @@
     </head>
     <body>
         <h1>Login</h1>
-        <form>
+        <form id="login-form">
             <label for="username">Username:</label>
             <input type="text" id="username" name="username"><br><br>
             <label for="password">Password:</label>
             <input type="password" id="password" name="password"><br><br>
             <input type="submit" value="Login">
+            <p id="error" class="error"></p>
         </form>
+        <script src="/html/js/api.js"></script>
+        <script>
+            document.getElementById("login-form").addEventListener("submit", async (event) => {
+                event.preventDefault();
+                const username = document.getElementById("username").value;
+                const password = document.getElementById("password").value;
+                const errorEl = document.getElementById("error");
+
+                try {
+                    await apiPost("/api/login", { username, password });
+                    window.location.href = "/dashboard";
+                } catch (err) {
+                    alert("Login failed. Please check your credentials.");
+                }
+            });
+        </script>
     </body>
 </html>
