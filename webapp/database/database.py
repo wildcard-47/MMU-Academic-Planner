@@ -1,9 +1,12 @@
 from random import random
 import sqlite3
+import os
+
+DB_DIR = os.path.abspath(os.path.dirname(__file__))
 
 def create_database_tables():
     try:
-        with sqlite3.connect("webapp/database/mmu_academic_planner.db") as conn:
+        with sqlite3.connect(os.path.join(DB_DIR, "mmu_academic_planner.db")) as conn:
             cursor = conn.cursor()
             #Create Users table
             cursor.execute("create table if not exists users (id INTEGER PRIMARY KEY AUTOINCREMENT, username text not null, password text not null);")
@@ -33,7 +36,7 @@ def create_database_tables():
        
 def add_user(username, password):
     try:
-        with sqlite3.connect("webapp/database/mmu_academic_planner.db") as conn:
+        with sqlite3.connect(os.path.join(DB_DIR, "mmu_academic_planner.db")) as conn:
             cursor = conn.cursor()
             cursor.execute("INSERT INTO users (username, password) VALUES (?, ?)", (username, password))
             conn.commit()
@@ -43,7 +46,7 @@ def add_user(username, password):
 
 def get_user(username):
     try:
-        with sqlite3.connect("webapp/database/mmu_academic_planner.db") as conn:
+        with sqlite3.connect(os.path.join(DB_DIR, "mmu_academic_planner.db")) as conn:
             cursor = conn.cursor()
             cursor.execute("SELECT * FROM users WHERE username = ?", (username,))
             user = cursor.fetchone()
@@ -55,7 +58,7 @@ def get_user(username):
 
 def add_student(name):
     try:
-        with sqlite3.connect("webapp/database/mmu_academic_planner.db") as conn:
+        with sqlite3.connect(os.path.join(DB_DIR, "mmu_academic_planner.db")) as conn:
             cursor = conn.cursor()
             cursor.execute("INSERT INTO students (stu_name) VALUES (?)", (name,))
             conn.commit()
@@ -67,7 +70,7 @@ insert_data= "insert into students (stu_name) values ('Mayada');"
 
 def add_subject(code, name):
     try:
-        with sqlite3.connect("webapp/database/mmu_academic_planner.db") as conn:
+        with sqlite3.connect(os.path.join(DB_DIR, "mmu_academic_planner.db")) as conn:
             cursor = conn.cursor()
             cursor.execute("INSERT INTO subjects (sub_code, sub_name) VALUES (?, ?)", (code, name))
             conn.commit()
@@ -77,7 +80,7 @@ def add_subject(code, name):
 
 def add_assessment(subject_code, assessment_name, weight):
     try:
-        with sqlite3.connect("webapp/database/mmu_academic_planner.db") as conn:
+        with sqlite3.connect(os.path.join(DB_DIR, "mmu_academic_planner.db")) as conn:
             cursor = conn.cursor()
             cursor.execute("INSERT INTO assessments (sub_code, assessment_name, weight) VALUES (?, ?, ?)", (subject_code, assessment_name, weight))
             conn.commit()
@@ -87,7 +90,7 @@ def add_assessment(subject_code, assessment_name, weight):
 
 def add_score(student_id, assessment_id, score):
     try:
-        with sqlite3.connect("webapp/database/mmu_academic_planner.db") as conn:
+        with sqlite3.connect(os.path.join(DB_DIR, "mmu_academic_planner.db")) as conn:
             cursor = conn.cursor()
             cursor.execute("INSERT INTO scores (stu_id, assessment_id, score) VALUES (?, ?, ?)", (student_id, assessment_id, score))
             conn.commit()
@@ -98,7 +101,7 @@ def add_score(student_id, assessment_id, score):
 
 def clean_database():
     try:
-        with sqlite3.connect("webapp/database/mmu_academic_planner.db") as conn:
+        with sqlite3.connect(os.path.join(DB_DIR, "mmu_academic_planner.db")) as conn:
             cursor = conn.cursor()
             cursor.execute("drop table if exists students;")
             cursor.execute("drop table if exists subjects;")
@@ -111,7 +114,7 @@ def clean_database():
 
 def list_students():
     try:
-        with sqlite3.connect("webapp/database/mmu_academic_planner.db") as conn:
+        with sqlite3.connect(os.path.join(DB_DIR, "mmu_academic_planner.db")) as conn:
             cursor = conn.cursor()
             cursor.execute("SELECT * FROM students")
             students = cursor.fetchall()
@@ -122,7 +125,7 @@ def list_students():
 
 def list_assessments_for_student(student_name):
     try:
-        with sqlite3.connect("webapp/database/mmu_academic_planner.db") as conn:
+        with sqlite3.connect(os.path.join(DB_DIR, "mmu_academic_planner.db")) as conn:
             cursor = conn.cursor()
             cursor.execute("select s.score_id,a.assessment_name,j.sub_name,j.sub_code,s.score from  scores s join assessments a on s.assessment_id  =a.assessment_id join subjects j on j.sub_code  =a.sub_code join students st on st.stu_id =s.stu_id WHERE stu_name = ?", (student_name,))
             assessments = cursor.fetchall()
@@ -133,7 +136,7 @@ def list_assessments_for_student(student_name):
 
 def fill_assessments_for_all_students():
     try:
-        with sqlite3.connect("webapp/database/mmu_academic_planner.db") as conn:
+        with sqlite3.connect(os.path.join(DB_DIR, "mmu_academic_planner.db")) as conn:
             cursor = conn.cursor()
             cursor.execute("SELECT stu_id FROM students")
             students = cursor.fetchall()

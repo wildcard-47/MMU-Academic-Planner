@@ -1,31 +1,32 @@
-
-import fastapi
+from fastapi import FastAPI
 from fastapi.responses import FileResponse
 import os
-import api.api
+import database.database as db
 
-app = fastapi.FastAPI()
-app.include_router(api.api.router)
+WEB_DIR = os.path.join(os.path.dirname(__file__),"html")
 
-WEB_DIR = os.path.join(os.path.dirname(__file__), "html")
+
+app = FastAPI()
+
+@app.on_event("startup")
+async def startup_event():
+    print("Starting up the FastAPI application...")
+    db.init_data()
 
 @app.get("/")
-def index_page():
+async def main():
     return FileResponse(os.path.join(WEB_DIR, "index.html"))
 
 @app.get("/login")
-def login_page():
+async def main():
     return FileResponse(os.path.join(WEB_DIR, "login.html"))
 
+
 @app.get("/signup")
-def signup_page():
+async def main():
     return FileResponse(os.path.join(WEB_DIR, "signup.html"))
 
-@app.get("/dashboard")
-def dashboard_page():
-    return FileResponse(os.path.join(WEB_DIR, "dashboard.html"))
 
-@app.on_event("startup")
-def on_startup():
-    from database.database import init_data
-    init_data()  # Call the function to initialize the database on startup
+@app.get("/dashboard")
+async def main():
+    return FileResponse(os.path.join(WEB_DIR, "dashboard.html"))
