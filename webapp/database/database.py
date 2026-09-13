@@ -9,11 +9,11 @@ def create_database_tables():
         with sqlite3.connect(os.path.join(DB_DIR, "mmu_academic_planner.db")) as conn:
             cursor = conn.cursor()
             #Create Users table
-            cursor.execute("create table if not exists users (id INTEGER PRIMARY KEY AUTOINCREMENT, username text not null, password text not null);")
-            conn.commit()
-            print("Users table created successfully.")
+            #cursor.execute("create table if not exists users (id INTEGER PRIMARY KEY AUTOINCREMENT, username text not null, password text not null);")
+            #conn.commit()
+            #print("Users table created successfully.")
             #Create student table
-            cursor.execute("create table if not exists students (stu_id integer primary key, stu_name text not null);")
+            cursor.execute("create table if not exists students (stu_id integer primary key, stu_name text not null, stu_password text not null);")
             conn.commit()
             print("Students table created successfully.")
             #Create subject table
@@ -33,39 +33,50 @@ def create_database_tables():
 
     except sqlite3.Error as e:
         print("Failed to create database:", e)
+
        
-def add_user(username, password):
+#def add_user(username, password):
+#    try:
+#        with sqlite3.connect(os.path.join(DB_DIR, "mmu_academic_planner.db")) as conn:
+#            cursor = conn.cursor()
+#            cursor.execute("INSERT INTO users (username, password) VALUES (?, ?)", (username, password))
+#            conn.commit()
+#            print(f"User '{username}' added successfully.")
+#    except sqlite3.Error as e:
+#        print("Failed to add user:", e)
+
+#def get_user(username):
+#    try:
+#        with sqlite3.connect(os.path.join(DB_DIR, "mmu_academic_planner.db")) as conn:
+#            cursor = conn.cursor()
+#            cursor.execute("SELECT * FROM users WHERE username = ?", (username,))
+#            user = cursor.fetchone()
+#            return user
+#    except sqlite3.Error as e:
+#        print("Failed to get user:", e)
+#        return None
+
+
+def add_student(name, password):
     try:
         with sqlite3.connect(os.path.join(DB_DIR, "mmu_academic_planner.db")) as conn:
             cursor = conn.cursor()
-            cursor.execute("INSERT INTO users (username, password) VALUES (?, ?)", (username, password))
-            conn.commit()
-            print(f"User '{username}' added successfully.")
-    except sqlite3.Error as e:
-        print("Failed to add user:", e)
-
-def get_user(username):
-    try:
-        with sqlite3.connect(os.path.join(DB_DIR, "mmu_academic_planner.db")) as conn:
-            cursor = conn.cursor()
-            cursor.execute("SELECT * FROM users WHERE username = ?", (username,))
-            user = cursor.fetchone()
-            return user
-    except sqlite3.Error as e:
-        print("Failed to get user:", e)
-        return None
-
-
-def add_student(name):
-    try:
-        with sqlite3.connect(os.path.join(DB_DIR, "mmu_academic_planner.db")) as conn:
-            cursor = conn.cursor()
-            cursor.execute("INSERT INTO students (stu_name) VALUES (?)", (name,))
+            cursor.execute("INSERT INTO students (stu_name, stu_password) VALUES (?, ?)", (name, password))
             conn.commit()
             print(f"Student '{name}' added successfully.")
     except sqlite3.Error as e:
         print("Failed to add student:", e)
-insert_data= "insert into students (stu_name) values ('Mayada');"
+
+def get_student(username):
+    try:
+        with sqlite3.connect(os.path.join(DB_DIR, "mmu_academic_planner.db")) as conn:
+            cursor = conn.cursor()
+            cursor.execute("SELECT * FROM students WHERE stu_name = ?", (username,))
+            student = cursor.fetchone()
+            return student
+    except sqlite3.Error as e:
+        print("Failed to get student:", e)
+        return None
 
 
 def add_subject(code, name):
@@ -155,10 +166,9 @@ def fill_assessments_for_all_students():
 def init_data():
     clean_database()
     create_database_tables()
-    add_student("Mayada")
-    add_student("Mohammad")
-    add_student("Rin")
-    add_student("Aisha")
+    add_student("Mayada","password1")
+    add_student("Mohammad","password2")
+    add_student("Rin","password3")
 
     add_subject("MATH101", "Mathematics")
     add_subject("CS101", "Programming")

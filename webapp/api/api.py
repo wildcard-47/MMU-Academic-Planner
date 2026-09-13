@@ -34,3 +34,13 @@ def login(credentials: Credentials):
     else:
         return JSONResponse(content={"message": "Login failed"}, status_code=400)
 
+
+@router.get("/api/assessments/{student_name}")
+def get_assessments(student_name: str):
+    from auth.auth import get_assessments_for_student
+    assessments = get_assessments_for_student(student_name)
+    if assessments is not None:
+        return JSONResponse(content={"assessments": assessments}, status_code=200)
+    else:
+        return JSONResponse(content={"message": "Failed to retrieve assessments"}, status_code=400)
+
