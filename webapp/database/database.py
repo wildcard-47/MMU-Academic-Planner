@@ -154,10 +154,11 @@ def list_students():
 def list_assessments_for_student(student_name):
     try:
         with sqlite3.connect(os.path.join(DB_DIR, "mmu_academic_planner.db")) as conn:
+            conn.row_factory = sqlite3.Row 
             cursor = conn.cursor()
-            cursor.execute("select s.score_id,a.assessment_name,j.sub_name,j.sub_code,s.score from  scores s join assessments a on s.assessment_id  =a.assessment_id join subjects j on j.sub_code  =a.sub_code join students st on st.stu_id =s.stu_id WHERE stu_name = ?", (student_name,))
-            assessments = cursor.fetchall()
-            return assessments
+            cursor.execute(" SELECT s.score_id, a.assessment_name, j.sub_name, j.sub_code, s.score FROM scores s JOIN assessments a ON s.assessment_id = a.assessment_id JOIN subjects j ON j.sub_code = a.sub_code JOIN students  st ON st.stu_id = s.stu_id WHERE st.stu_name = ? ", (student_name,))
+            rows = cursor.fetchall()
+            return [dict(r) for r in rows]
     except sqlite3.Error as e:
         print("Failed to list assessments for student:", e)
         return []

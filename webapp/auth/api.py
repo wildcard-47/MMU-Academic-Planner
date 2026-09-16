@@ -13,6 +13,14 @@ class Credentials(BaseModel):
     username: str
     password: str
 
+def get_current_student(request: Request):
+    stu_id = request.session.get("stu_id")
+    if stu_id is None:
+        raise HTTPException(status_code=401, detail="Not logged in.")
+    student = get_student_by_id(stu_id)
+    if student is None:
+        raise HTTPException(status_code=401, detail="Not logged in.")
+    return student
 
 @app.get("/")
 def read_root():
