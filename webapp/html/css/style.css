@@ -1,0 +1,119 @@
+body {
+  font-family: Arial, sans-serif;
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 20px;
+  background: #f5f5f5;
+  color: #222;
+}
+
+nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #2f4f6f;
+  color: white;
+  padding: 12px 20px;
+  margin: -20px -20px 20px -20px;
+}
+
+nav a, nav button {
+  color: white;
+  text-decoration: none;
+  margin-right: 15px;
+  background: none;
+  border: none;
+  font-size: 15px;
+  cursor: pointer;
+}
+
+nav a:hover, nav button:hover {
+  text-decoration: underline;
+}
+
+h1, h2 {
+  color: #2f4f6f;
+}
+
+.card {
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  padding: 15px;
+  margin-bottom: 15px;
+}
+
+form.inline {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+input, select {
+  padding: 6px 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+button {
+  padding: 6px 12px;
+  border: none;
+  border-radius: 4px;
+  background: #2f4f6f;
+  color: white;
+  cursor: pointer;
+}
+
+button.danger {
+  background: #a33;
+}
+
+button:hover {
+  opacity: 0.9;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th, td {
+  text-align: left;
+  padding: 8px;
+  border-bottom: 1px solid #eee;
+}
+
+.error {
+  color: #a33;
+  margin: 8px 0;
+}
+
+.progress-bar-bg {
+  background: #eee;
+  border-radius: 4px;
+  width: 160px;
+  height: 14px;
+  overflow: hidden;
+  display: inline-block;
+  vertical-align: middle;
+}
+
+.progress-bar-fill {
+  height: 100%;
+}
+
+.auth-box {
+  max-width: 350px;
+  margin: 60px auto;
+}
+
+.auth-box input {
+  width: 100%;
+  margin-bottom: 10px;
+  box-sizing: border-box;
+}
+
+.auth-box button {
+  width: 100%;
+}

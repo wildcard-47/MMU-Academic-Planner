@@ -156,7 +156,7 @@ def list_assessments_for_student(student_name):
         with sqlite3.connect(os.path.join(DB_DIR, "mmu_academic_planner.db")) as conn:
             conn.row_factory = sqlite3.Row 
             cursor = conn.cursor()
-            cursor.execute(" SELECT s.score_id, a.assessment_name, j.sub_name, j.sub_code, s.score FROM scores s JOIN assessments a ON s.assessment_id = a.assessment_id JOIN subjects j ON j.sub_code = a.sub_code JOIN students  st ON st.stu_id = s.stu_id WHERE st.stu_name = ? ", (student_name,))
+            cursor.execute("SELECT j.sub_name, j.sub_code,	round(sum((a.weight) * (s.score)/100)) total_score FROM	scores s JOIN assessments a ON 	s.assessment_id = a.assessment_id JOIN subjects j ON j.sub_code = a.sub_code JOIN students st ON st.stu_id = s.stu_id WHERE st.stu_name = ? group by j.sub_name, j.sub_code", (student_name,)) 
             rows = cursor.fetchall()
             return [dict(r) for r in rows]
     except sqlite3.Error as e:
