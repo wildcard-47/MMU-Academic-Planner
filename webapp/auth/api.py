@@ -36,6 +36,11 @@ def login(credentials: Credentials,request: Request):
     else:
         return JSONResponse(content={"message": "Login failed"}, status_code=400)
 
+@router.post("/api/logout")
+def logout_route(request: Request):
+    request.session.clear()
+    return {"ok": True}
+
 @router.get("/api/me")
 def me_route(request: Request):
     stu_id = request.session.get("stu_id")
