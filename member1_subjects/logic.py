@@ -36,3 +36,17 @@ def validate_weight(value):
         return None, "Weight must be between 0 and 100."
 
     return weight, None
+
+def validate_score(value):
+    if value == "" or value is None:
+        return None, None
+
+    try:
+        score = float(value)
+    except ValueError:
+        return None, "Score must be a number."
+
+    if not 0 <= score <= 100:
+        return None, "Score must be between 0 and 100."
+
+    return score, None
