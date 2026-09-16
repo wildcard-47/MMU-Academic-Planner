@@ -67,6 +67,23 @@ def add_student(name, password):
     except sqlite3.Error as e:
         print("Failed to add student:", e)
 
+import sqlite3
+import os
+
+def get_student_by_id(student_id):
+    try:
+        with sqlite3.connect(os.path.join(DB_DIR, "mmu_academic_planner.db")) as conn:
+            conn.row_factory = sqlite3.Row
+            cursor = conn.cursor()
+            row = cursor.execute(
+                "SELECT * FROM students WHERE stu_id = ?",(student_id,),).fetchone()
+            if row is None:
+                return None
+            return dict(row) 
+    except sqlite3.Error as e:
+        print("Failed to get student by ID:", e)
+        return None
+
 def get_student(username):
     try:
         with sqlite3.connect(os.path.join(DB_DIR, "mmu_academic_planner.db")) as conn:

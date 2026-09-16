@@ -3,7 +3,59 @@
         <title>Dashboard</title>
     </head>
     <body>
-        <h1>Welcome to the Dashboard</h1>
-        <p>This is the main dashboard page.</p>
+  <nav id="nav"></nav>
+
+  <h1>Academic Dashboard</h1>
+
+  <div id="subjects-list"></div>
+  <div id="summary" class="card"></div>
     </body>
+    <script src="/html/js/api.js"></script>
+    <script>
+        function colorFor(score) {
+  if (score >= 70) return "#2fa84f";
+  if (score >= 50) return "#e0a800";
+  return "#c0392b";
+}
+
+async function loadDashboard() {
+  const data = await apiGet("/api/dashboard");
+  const list = document.getElementById("subjects-list");
+  list.innerHTML = "";
+
+  if (data.subjects.length === 0) {
+    list.innerHTML = "<p>No subjects yet — add one in the Subjects tab.</p>";
+  }
+
+  data.subjects.forEach((s) => {
+    const row = document.createElement("div");
+    row.className = "card";
+    const pct = Math.max(0, Math.min(s.score, 100));
+    row.innerHTML = `
+      <b>${s.name} (${s.code})</b> — ${s.score.toFixed(1)}% — ${s.letter}
+      <div class="progress-bar-bg">
+        <div class="progress-bar-fill" style="width:${pct}%; background:${colorFor(s.score)}"></div>
+      </div>
+    `;
+    list.appendChild(row);
+  });
+
+  const summary = document.getElementById("summary");
+  if (data.subjects.length === 0) {
+    summary.innerHTML = "";
+    return;
+  }
+  summary.innerHTML = `
+    <p><b>Overall Average: ${data.average.toFixed(1)}%</b></p>
+    ${data.highest ? `<p>Highest: ${data.highest.name} - ${data.highest.score.toFixed(1)}%</p>` : ""}
+    ${data.lowest ? `<p>Lowest: ${data.lowest.name} - ${data.lowest.score.toFixed(1)}%</p>` : ""}
+  `;
+}
+
+document.addEventListener("DOMContentLoaded", async () => {
+  const user = await requireAuth();
+  if (!user) return;
+  await loadDashboard();
+});
+    </script>
 </html>

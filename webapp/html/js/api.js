@@ -21,9 +21,9 @@ const apiDelete = (url) => apiRequest("DELETE", url);
 // authenticated. Returns the current user, or null (and redirects) if
 // nobody is logged in.
 async function requireAuth() {
-  let user;
+  let student;
   try {
-    user = await apiGet("/api/me");
+    student = await apiGet("/api/me");
   } catch (err) {
     window.location.href = "/login";
     return null;
@@ -36,7 +36,7 @@ async function requireAuth() {
         <a href="/dashboard">Dashboard &amp; Reports</a>
       </div>
       <div>
-        Logged in as ${user.username}
+        Logged in as ${student.stu_name}
         <button id="logout-btn">Logout</button>
       </div>
     `;
@@ -45,6 +45,5 @@ async function requireAuth() {
       window.location.href = "/login";
     });
   }
-
   return user;
 }

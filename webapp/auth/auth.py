@@ -1,10 +1,10 @@
-from database.database import add_student, get_student, list_assessments_for_student
+from database.database import add_student, get_student
 
 def login(username, password):
     student = get_student(username)
     if student and student[2] == password:
-        return True
-    return False
+         return student[0], student
+    return None, None
 
 def signup(username, password):
     existing_student = get_student(username)
@@ -13,5 +13,3 @@ def signup(username, password):
     add_student(username, password)
     return True
 
-def get_assessments_for_student(student_name):
-    return list_assessments_for_student(student_name)
