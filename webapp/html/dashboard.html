@@ -9,7 +9,7 @@
     </head>
     <body>
 
- <header>
+<header>
   <a href="/dashboard" class="logo-container">
     <img src="/html/logo-mmu2x.png" alt="Multimedia University Logo" class="logo-img">
     <div class="logo-divider"></div>
@@ -18,60 +18,132 @@
   <nav class="nav-links" id="nav"></nav>
 </header>
 
-  <h1>Academic Dashboard</h1>
+<h1>📊 Academic Dashboard</h1>
+<div id="insight" class="insight-banner" hidden></div>
+<div id="summary" class="stats-row"></div>
+<div id="subjects-list"></div>
+<h2>Compare Your Subjects</h2>
+<div id="subject-chart" class="card"></div>
+<button id="print-btn" class="no-print">🖨️ Print / Export Report</button>
 
-  <div id="subjects-list"></div>
-  <div id="summary" class="card"></div>
     </body>
-    <script src="/html/js/api.js"></script>
-    <script>
-        function colorFor(score) {
-  if (score >= 70) return "green";
-  if (score >= 50) return "yellow";
-  return "red";
-}
-
-async function loadDashboard() {
-  const data = await apiGet("/api/dashboard");
-  const list = document.getElementById("subjects-list");
-  list.innerHTML = "";
-
-  if (data.subjects.length === 0) {
-    list.innerHTML = "<p>No subjects yet — add one in the Subjects tab.</p>";
+  <script src="/html/js/api.js"></script>
+<script>
+  function colorFor(score) {
+    if (score >= 70) return "green";
+    if (score >= 50) return "yellow";
+    return "red";
   }
 
-  data.subjects.forEach((s) => {
-    const row = document.createElement("div");
-    row.className = "card";
-    const pct = Math.max(0, Math.min(s.score, 100));
-    row.innerHTML = `
-       <b><span class="subject-icon">${iconForSubject(s.name)}</span>${s.name} (${s.code})</b>
-      — ${s.score.toFixed(1)}%
-      <span class="grade-badge" style="background:${badgeColorFor(s.letter)}">${s.letter}</span>
-      <div class="progress-bar-bg">
-        <div class="progress-bar-fill" style="width:${pct}%; background:${colorFor(s.score)}"></div>
+  function renderSubjectChart(subjects) {
+    const chart = document.getElementById("subject-chart");
+    if (!chart) return;
+    if (subjects.length === 0) {
+      chart.innerHTML = "";
+      return;
+    }
+    chart.innerHTML = subjects.map((s) => `
+      <div class="chart-row">
+        <span class="chart-label">${iconForSubject(s.name)} ${s.name}</span>
+        <div class="chart-bar-bg">
+          <div class="chart-bar-fill" style="width:${Math.max(0, Math.min(s.score, 100))}%; background:${colorFor(s.score)}"></div>
+        </div>
+        <span class="chart-value">${s.score.toFixed(0)}%</span>
       </div>
-  <p class="comparison-text">${comparisonText}</p>
-`;
-    list.appendChild(row);
-  });
-
-  const summary = document.getElementById("summary");
-  if (data.subjects.length === 0) {
-    summary.innerHTML = "";
-    return;
+    `).join("");
   }
-  summary.innerHTML = `
-    <p><b>Overall Average: ${data.average.toFixed(1)}%</b></p>
-    ${data.highest ? `<p>Highest: ${data.highest.name} - ${data.highest.score.toFixed(1)}%</p>` : ""}
-    ${data.lowest ? `<p>Lowest: ${data.lowest.name} - ${data.lowest.score.toFixed(1)}%</p>` : ""}
-  `;
-}
 
-document.addEventListener("DOMContentLoaded", async () => {
-  const user = await requireAuth();
-  if (!user) return;
-  await loadDashboard();
-});
-    </script>
+  async function loadDashboard() {
+    const data = await apiGet("/api/dashboard");
+
+    // 1. Render Subjects List
+    const list = document.getElementById("subjects-list");
+    if (list) {
+      list.innerHTML = "";
+      if (data.subjects.length === 0) {
+        list.innerHTML = "<p>No subjects yet — add one in the Subjects tab.</p>";
+      } else {
+        data.subjects.forEach((s) => {
+          const row = document.createElement("div");
+          row.className = "card";
+          const pct = Math.max(0, Math.min(s.score, 100));
+
+          // Builds comparison sentence if higher_than_percent exists
+          const comparisonText = s.higher_than_percent != null 
+            ? `Higher than ${s.higher_than_percent}% of students` 
+            : "";
+
+          row.innerHTML = `
+            <b><span class="subject-icon">${iconForSubject(s.name)}</span>${s.name} (${s.code})</b>
+            — ${s.score.toFixed(1)}%
+            <span class="grade-badge" style="background:${badgeColorFor(s.letter)}">${s.letter}</span>
+            <div class="progress-bar-bg">
+              <div class="progress-bar-fill" style="width:${pct}%; background:${colorFor(s.score)}"></div>
+            </div>
+            ${comparisonText ? `<p class="comparison-text">${comparisonText}</p>` : ""}
+          `;
+          list.appendChild(row);
+        });
+      }
+    }
+
+    // 2. Render Insight Box
+    const insight = document.getElementById("insight");
+    if (insight) {
+      if (data.subjects.length === 0) {
+        insight.hidden = true;
+      } else {
+        insight.hidden = false;
+        insight.textContent = data.insight;
+      }
+    }
+
+    // 3. Render Stat Cards Summary
+    const summary = document.getElementById("summary");
+    if (summary) {
+      if (data.subjects.length === 0) {
+        summary.innerHTML = "";
+      } else {
+        summary.innerHTML = `
+          <div class="stat-card">
+            <div class="stat-label">Overall Average</div>
+            <div class="stat-ring" style="--pct:${data.average}">
+              <div class="stat-ring-inner">${data.average.toFixed(0)}%</div>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Class Rank</div>
+            <div class="stat-value">#${data.rank}</div>
+            <div class="stat-sub">out of ${data.class_size} students</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Highest Subject</div>
+            <div class="stat-value" style="font-size:20px">${data.highest ? iconForSubject(data.highest.name) + " " + data.highest.name : "-"}</div>
+            <div class="stat-sub">${data.highest ? data.highest.score.toFixed(1) + "%" : ""}</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Lowest Subject</div>
+            <div class="stat-value" style="font-size:20px">${data.lowest ? iconForSubject(data.lowest.name) + " " + data.lowest.name : "-"}</div>
+            <div class="stat-sub">${data.lowest ? data.lowest.score.toFixed(1) + "%" : ""}</div>
+          </div>
+        `;
+      }
+    }
+
+    // 4. Render Chart
+    renderSubjectChart(data.subjects);
+  }
+
+  document.addEventListener("DOMContentLoaded", async () => {
+    const user = await requireAuth();
+    if (!user) return;
+    await loadDashboard();
+
+    // Attach print button handler if element exists
+    const printBtn = document.getElementById("print-btn");
+    if (printBtn) {
+      printBtn.addEventListener("click", () => window.print());
+    }
+  });
+</script>
 </html>

@@ -1,25 +1,15 @@
-from fastapi import APIRouter, FastAPI, Request, HTTPException, Depends
-from fastapi.responses import JSONResponse
-from pydantic import BaseModel
-from dashboard.dashboard import get_assessments_for_student, calculate_average, find_highest, find_lowest
+from fastapi import APIRouter, Depends
+from dashboard.dashboard import (
+    get_assessments_for_student, calculate_average, find_highest, find_lowest,
+    calculate_percentile, get_all_students_overall_averages, calculate_rank,
+    get_insight_message,
+)
 from dashboard.grading import percent_to_letter
+from database.database import get_all_scores_for_subject
 from auth.api import get_current_student
 
 router = APIRouter()
 
-app = FastAPI()
-
-class Credentials(BaseModel):
-    username: str
-    password: str
-
-@router.get("/api/assessments/{student_name}")
-def get_assessments(student_name: str):
-    assessments = get_assessments_for_student(student_name)
-    if assessments is not None:
-        return JSONResponse(content={"assessments": assessments}, status_code=200)
-    else:
-        return JSONResponse(content={"message": "Failed to retrieve assessments"}, status_code=400)
 
 def load_subject_scores(stu_name):
     subjects = []
@@ -32,10 +22,30 @@ def load_subject_scores(stu_name):
 @router.get("/api/dashboard")
 def get_dashboard(student=Depends(get_current_student)):
     subjects = load_subject_scores(student["stu_name"])
-    rows = [{**s, "letter": percent_to_letter(s["score"])} for s in subjects]
+    rows = []
+    for s in subjects:
+        others = [
+            row["total_score"] for row in get_all_scores_for_subject(s["code"])
+            if row["stu_id"] != student["stu_id"]
+        ]
+        rows.append({
+            **s,
+            "letter": percent_to_letter(s["score"]),
+            "higher_than_percent": calculate_percentile(s["score"], others),
+        })
+
+    average = calculate_average(subjects)
+
+    all_averages = get_all_students_overall_averages()
+    other_averages = [a["average"] for a in all_averages if a["stu_id"] != student["stu_id"]]
+    rank, total = calculate_rank(average, other_averages)
+
     return {
         "subjects": rows,
-        "average": calculate_average(subjects),
+        "average": average,
         "highest": find_highest(subjects),
         "lowest": find_lowest(subjects),
+        "rank": rank,
+        "class_size": total,
+        "insight": get_insight_message(rank, total),
     }
