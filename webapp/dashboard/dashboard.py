@@ -1,4 +1,3 @@
-from database.database import list_assessments_for_student
 from database.database import list_assessments_for_student, list_students
 
 def calculate_average(subjects):
@@ -55,9 +54,4 @@ def get_insight_message(rank, total):
         return f"🎉 Great job! You're in the top third of your class (rank {rank} of {total})."
     if share <= 0.67:
         return f"👍 You're holding steady in the middle of the pack (rank {rank} of {total}). A little more effort could push you higher!"
-    return f"💪 You're currently rank {rank} of {total}. Check the Grade Planner to see what you need for your target grade."
-
-
-def find_next_rank_average(my_average, other_averages):
-    higher = [avg for avg in other_averages if avg > my_average]
-    return min(higher) if higher else None
+    return f"💪 You're currently rank {rank} of {total}."

@@ -7,7 +7,6 @@
     <title>MMU Academic Planner</title>
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-
     <style>
         :root {
             --primary: #003366; /* MMU Deep Blue */
@@ -40,10 +39,16 @@
             background-color: rgba(255,255,255,0.85);
             backdrop-filter: blur(8px);
             -webkit-backdrop-filter: blur(8px);
+            border-bottom: 1px solid var(--border-color);
+            padding: 0.8rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
             position: sticky;
             top: 0;
             z-index: 10;
-}
+        }
 
         /* Logo Styling */
         .logo-container {
@@ -110,27 +115,43 @@
             transform: translateY(-1px);
         }
 
-       
+        /* Hero Section */
         main {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 3rem 1.5rem;
             position: relative;
             overflow: hidden;
             background: radial-gradient(circle at 15% 20%, rgba(0,51,102,0.06) 0%, transparent 45%),
-                radial-gradient(circle at 85% 80%, rgba(218,37,43,0.06) 0%, transparent 45%);
-}
+                        radial-gradient(circle at 85% 80%, rgba(218,37,43,0.06) 0%, transparent 45%);
+        }
 
         .hero-blob {
             position: absolute;
             border-radius: 50%;
             z-index: 0;
-}
+        }
 
         .hero-blob-1 { width: 260px; height: 260px; top: -60px; left: 5%; background: rgba(0,51,102,0.05); }
         .hero-blob-2 { width: 200px; height: 200px; bottom: -40px; right: 8%; background: rgba(218,37,43,0.05); }
-       
+
         .hero-card {
             position: relative;
             z-index: 1;
-}
+        }
+
+        .hero-card {
+            background: var(--card-bg);
+            max-width: 800px;
+            width: 100%;
+            padding: 3.5rem 2.5rem;
+            border-radius: 16px;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.01);
+            border: 1px solid var(--border-color);
+            text-align: center;
+        }
 
         .hero-card h1 {
             font-size: 2.5rem;
