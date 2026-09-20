@@ -184,6 +184,26 @@ def get_all_scores_for_subject(sub_code):
         return []
 
 
+def get_unscored_assessments_for_student(stu_id):
+    try:
+        with sqlite3.connect(DB_PATH) as conn:
+            conn.row_factory = sqlite3.Row
+            cursor = conn.cursor()
+            cursor.execute(
+                "SELECT a.assessment_name, a.weight, j.sub_name, j.sub_code "
+                "FROM assessments a "
+                "JOIN subjects j ON j.sub_code = a.sub_code "
+                "LEFT JOIN scores s ON s.assessment_id = a.assessment_id AND s.stu_id = ? "
+                "WHERE s.score IS NULL "
+                "ORDER BY a.weight DESC",
+                (stu_id,),
+            )
+            return [dict(r) for r in cursor.fetchall()]
+    except sqlite3.Error as e:
+        print("Failed to get unscored assessments:", e)
+        return []
+
+
 def fill_assessments_for_all_students():
     try:
         with sqlite3.connect(os.path.join(DB_DIR, "mmu_academic_planner.db")) as conn:

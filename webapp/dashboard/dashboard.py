@@ -56,3 +56,8 @@ def get_insight_message(rank, total):
     if share <= 0.67:
         return f"👍 You're holding steady in the middle of the pack (rank {rank} of {total}). A little more effort could push you higher!"
     return f"💪 You're currently rank {rank} of {total}. Check the Grade Planner to see what you need for your target grade."
+
+
+def find_next_rank_average(my_average, other_averages):
+    higher = [avg for avg in other_averages if avg > my_average]
+    return min(higher) if higher else None

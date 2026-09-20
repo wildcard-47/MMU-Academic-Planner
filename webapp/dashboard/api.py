@@ -2,13 +2,48 @@ from fastapi import APIRouter, Depends
 from dashboard.dashboard import (
     get_assessments_for_student, calculate_average, find_highest, find_lowest,
     calculate_percentile, get_all_students_overall_averages, calculate_rank,
-    get_insight_message,
+    get_insight_message, find_next_rank_average,
 )
 from dashboard.grading import percent_to_letter
-from database.database import get_all_scores_for_subject
+from database.database import (
+    get_all_scores_for_subject, get_unscored_assessments_for_student,
+    get_subject_performance,
+)
 from auth.api import get_current_student
+from grades.grades import required_score_for_target
 
 router = APIRouter()
+
+def build_quick_win(student, rows, average, other_averages):
+    if not rows:
+        return None
+
+    target_average = find_next_rank_average(average, other_averages)
+    if target_average is None:
+        return {"status": "already_first"}
+
+    weakest = min(rows, key=lambda s: s["score"])
+    performance = get_subject_performance(student["stu_id"], weakest["code"])
+    if performance["remaining_weight"] <= 0:
+        return {"status": "no_remaining_assessments", "subject_name": weakest["name"]}
+
+    # Overall average is a plain mean of subject scores, so raising one
+    # subject's score by delta raises the average by delta / num_subjects.
+    # Solve for the subject score that would just clear the next rank up.
+    num_subjects = len(rows)
+    target_subject_score = weakest["score"] + num_subjects * (target_average - average)
+
+    required = required_score_for_target(
+        performance["earned"], performance["remaining_weight"], target_subject_score
+    )
+    if required > 100:
+        return {"status": "not_achievable", "subject_name": weakest["name"]}
+    return {
+        "status": "ok",
+        "subject_name": weakest["name"],
+        "required_score": max(0, required),
+    }
+
 
 
 def load_subject_scores(stu_name):
