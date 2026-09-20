@@ -163,6 +163,27 @@ def list_assessments_for_student(student_name):
         print("Failed to list assessments for student:", e)
         return []
 
+def get_all_scores_for_subject(sub_code):
+    try:
+        with sqlite3.connect(DB_PATH) as conn:
+            conn.row_factory = sqlite3.Row
+            cursor = conn.cursor()
+            cursor.execute(
+                "SELECT st.stu_id, st.stu_name, round(sum(a.weight * s.score / 100)) total_score "
+                "FROM scores s "
+                "JOIN assessments a ON s.assessment_id = a.assessment_id "
+                "JOIN subjects j ON j.sub_code = a.sub_code "
+                "JOIN students st ON st.stu_id = s.stu_id "
+                "WHERE j.sub_code = ? "
+                "GROUP BY st.stu_id, st.stu_name",
+                (sub_code,),
+            )
+            return [dict(r) for r in cursor.fetchall()]
+    except sqlite3.Error as e:
+        print("Failed to get scores for subject:", e)
+        return []
+
+
 def fill_assessments_for_all_students():
     try:
         with sqlite3.connect(os.path.join(DB_DIR, "mmu_academic_planner.db")) as conn:
