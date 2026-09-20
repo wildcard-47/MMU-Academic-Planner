@@ -8,7 +8,15 @@
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     </head>
     <body>
-  <nav id="nav"></nav>
+
+ <header>
+  <a href="/dashboard" class="logo-container">
+    <img src="/html/logo-mmu2x.png" alt="Multimedia University Logo" class="logo-img">
+    <div class="logo-divider"></div>
+    <span class="logo-subtitle">Academic Planner</span>
+  </a>
+  <nav class="nav-links" id="nav"></nav>
+</header>
 
   <h1>Academic Dashboard</h1>
 
@@ -37,11 +45,14 @@ async function loadDashboard() {
     row.className = "card";
     const pct = Math.max(0, Math.min(s.score, 100));
     row.innerHTML = `
-      <b>${s.name} (${s.code})</b> — ${s.score.toFixed(1)}% — ${s.letter}
+       <b><span class="subject-icon">${iconForSubject(s.name)}</span>${s.name} (${s.code})</b>
+      — ${s.score.toFixed(1)}%
+      <span class="grade-badge" style="background:${badgeColorFor(s.letter)}">${s.letter}</span>
       <div class="progress-bar-bg">
         <div class="progress-bar-fill" style="width:${pct}%; background:${colorFor(s.score)}"></div>
       </div>
-    `;
+  <p class="comparison-text">${comparisonText}</p>
+`;
     list.appendChild(row);
   });
 
