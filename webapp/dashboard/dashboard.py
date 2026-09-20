@@ -21,3 +21,4 @@ def get_dashboard_data():
         "highest": None,
         "lowest": None
     }
+
