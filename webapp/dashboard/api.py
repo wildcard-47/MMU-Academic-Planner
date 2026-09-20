@@ -83,4 +83,6 @@ def get_dashboard(student=Depends(get_current_student)):
         "rank": rank,
         "class_size": total,
         "insight": get_insight_message(rank, total),
+        "attention": get_unscored_assessments_for_student(student["stu_id"]),
+        "quick_win": build_quick_win(student, rows, average, other_averages),
     }

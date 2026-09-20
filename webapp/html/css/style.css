@@ -330,6 +330,58 @@ th, td {
   color: var(--primary);
 }
 
+/* --- Dashboard: achievement badges --- */
+
+.badges-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.achievement-badge {
+  background: white;
+  border: 1px solid var(--border-color);
+  border-radius: 999px;
+  padding: 6px 14px;
+  font-size: 13px;
+  font-weight: 600;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+
+/* --- Dashboard: quick-win suggestion --- */
+
+.quickwin-banner {
+  background: linear-gradient(135deg, var(--success-green) 0%, #1e7e3a 100%);
+  color: white;
+  border-radius: 10px;
+  padding: 16px 20px;
+  margin-bottom: 20px;
+  font-size: 15px;
+  box-shadow: 0 4px 14px rgba(47,168,79,0.25);
+}
+
+/* --- Dashboard: "what needs attention" list --- */
+
+.attention-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.attention-row:last-child {
+  border-bottom: none;
+}
+
+.attention-weight {
+  font-weight: 700;
+  color: var(--accent-red);
+}
+
+
+
 /*Dashboard: "Compare Your Subjects" bar chart*/
 
 .chart-row {
