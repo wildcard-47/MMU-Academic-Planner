@@ -7,10 +7,9 @@ from dashboard.dashboard import (
 from dashboard.grading import percent_to_letter
 from database.database import (
     get_all_scores_for_subject, get_unscored_assessments_for_student,
-    get_subject_performance,
 )
 from auth.api import get_current_student
-from grades.grades import required_score_for_target
+
 
 router = APIRouter()
 

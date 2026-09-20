@@ -3,6 +3,7 @@ import sqlite3
 import os
 
 DB_DIR = os.path.abspath(os.path.dirname(__file__))
+DB_PATH = os.path.join(DB_DIR, "mmu_academic_planner.db")
 
 def create_database_tables():
     try:
