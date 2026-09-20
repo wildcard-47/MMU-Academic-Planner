@@ -14,9 +14,9 @@
     <script src="/html/js/api.js"></script>
     <script>
         function colorFor(score) {
-  if (score >= 70) return "#2fa84f";
-  if (score >= 50) return "#e0a800";
-  return "#c0392b";
+  if (score >= 70) return "green";
+  if (score >= 50) return "yellow";
+  return "red";
 }
 
 async function loadDashboard() {
