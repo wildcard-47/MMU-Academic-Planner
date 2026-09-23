@@ -1,0 +1,277 @@
+<html>
+    <head>
+        <title>Dashboard</title>
+        <link rel="stylesheet" href="html/css/style.css">
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="icon" type="image/png" href="/html/logo-mmu2x.png">
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+        <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>      
+      <style>
+            .banner-card {
+                background: linear-gradient(135deg, #003366 0%, #0056b3 100%);
+                color: #ffffff;
+                padding: 1.1rem 1.4rem;
+                border-radius: 10px;
+                margin-bottom: 1.5rem;
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+                display: flex;
+                align-items: center;
+            }
+
+            .banner-quote {
+                font-style: italic;
+                font-size: 1rem;
+                line-height: 1.4;
+            }
+        </style>
+    </head>
+    <body>
+
+<header>
+  <a href="/dashboard" class="logo-container">
+    <img src="/html/logo-mmu2x.png" alt="Multimedia University Logo" class="logo-img">
+    <div class="logo-divider"></div>
+    <span class="logo-subtitle">Academic Planner</span>
+  </a>
+  <nav class="nav-links" id="nav"></nav>
+</header>
+
+<!--Motivational Quote Banner-->
+<div id="quote-banner" class="banner-card">
+    <div class="banner-quote">
+        <span style="font-size: 1.2rem; margin-right: 8px;">💡</span>
+        <span id="motivational-quote">"Loading daily motivation..."</span>
+    </div>
+</div>
+
+<h1>📊 Academic Dashboard</h1>
+<div id="insight" class="insight-banner" hidden></div>
+<div id="quickwin" class="quickwin-banner" hidden></div>
+<div id="badges" class="badges-row"></div>
+<div id="summary" class="stats-row"></div>
+<div id="attention-section" hidden>
+  <h2>📝 What Needs Attention</h2>
+  <div id="attention-list" class="card"></div>
+</div>
+<div id="subjects-list"></div>
+<h2>Compare Your Subjects</h2>
+<div id="subject-chart" class="card"></div>
+<button id="print-btn" class="no-print">🖨️ Print / Export Report</button>
+
+    </body>
+  <script src="/html/js/api.js"></script>
+<script>
+
+  function triggerConfetti() {
+    if (typeof confetti === "function") {
+      confetti({
+        particleCount: 120,
+        spread: 80,
+        origin: { y: 0.6 }
+      });
+    }
+  }  
+
+  function initBanner() {
+  const quotes = [
+    "Success is the sum of small efforts, repeated day in and day out.",
+    "Believe you can and you're halfway there.",
+    "Your hard work in this trimester will pay off!",
+    "Focus on progress, not perfection.",
+    "The secret of getting ahead is getting started.",
+    "Don't stop until you're proud of your work.",
+    "Small daily improvements over time lead to stunning results."
+  ];
+
+  // Pick a random quote index on every dashboard load
+  const randomQuote = quotes[Math.floor(Math.random() * quotes.length)];
+  const quoteElement = document.getElementById("motivational-quote");
+  if (quoteElement) {
+    quoteElement.textContent = `"${randomQuote}"`;
+  }
+}
+
+
+  function renderBadges(data) {
+    const badgesEl = document.getElementById("badges");
+    const badges = [];
+
+    if (data.subjects.some((s) => s.higher_than_percent === 100)) {
+      badges.push("🥇 Top of the Class");
+    }
+    if (data.subjects.length > 0 && data.subjects.every((s) => s.score >= 70)) {
+      badges.push("🌟 Well-Rounded");
+    }
+    if (data.class_size > 1 && data.rank / data.class_size <= 0.34) {
+      badges.push("🎯 Top Third");
+    }
+
+    badgesEl.innerHTML = badges.map((b) => `<span class="achievement-badge">${b}</span>`).join("");
+  }
+
+  function renderQuickWin(quickWin) {
+    const el = document.getElementById("quickwin");
+    if (!quickWin || quickWin.status === "already_first") {
+      el.hidden = true;
+      return;
+    }
+    el.hidden = false;
+    if (quickWin.status === "ok") {
+      el.textContent =
+        `🚀 Quick win: score ${quickWin.required_score.toFixed(1)}% on your next ` +
+        `${quickWin.subject_name} assessment to move up a class rank.`;
+    } else if (quickWin.status === "no_remaining_assessments") {
+      el.textContent = `All assessments in ${quickWin.subject_name} are already scored — check another subject to improve your rank.`;
+    } else if (quickWin.status === "not_achievable") {
+      el.textContent = `Even a perfect score in ${quickWin.subject_name} alone wouldn't be enough to move up a rank right now — every subject counts.`;
+    } else {
+      el.hidden = true;
+    }
+  }
+
+  function renderAttention(attention) {
+    const section = document.getElementById("attention-section");
+    const list = document.getElementById("attention-list");
+    if (!attention || attention.length === 0) {
+      section.hidden = true;
+      return;
+    }
+    section.hidden = false;
+    list.innerHTML = attention.map((a) => `
+      <div class="attention-row">
+        <span>${iconForSubject(a.sub_name)} ${a.assessment_name} — ${a.sub_name}</span>
+        <span class="attention-weight">${a.weight}%</span>
+      </div>
+    `).join("");
+  }
+
+function colorFor(score) {
+  if (score >= 70) return "var(--success-green)";   
+  if (score >= 50) return "var(--warning-orange)"; 
+  return "var(--error-red)";                        
+}
+
+  function renderSubjectChart(subjects) {
+    const chart = document.getElementById("subject-chart");
+    if (!chart) return;
+    if (subjects.length === 0) {
+      chart.innerHTML = "";
+      return;
+    }
+    chart.innerHTML = subjects.map((s) => `
+      <div class="chart-row">
+        <span class="chart-label">${iconForSubject(s.name)} ${s.name}</span>
+        <div class="chart-bar-bg">
+          <div class="chart-bar-fill" style="width:${Math.max(0, Math.min(s.score, 100))}%; background:${colorFor(s.score)}"></div>
+        </div>
+        <span class="chart-value">${s.score.toFixed(0)}%</span>
+      </div>
+    `).join("");
+  }
+
+  async function loadDashboard() {
+    const data = await apiGet("/api/dashboard");
+
+    // 1. Render Subjects List
+    const list = document.getElementById("subjects-list");
+    if (list) {
+      list.innerHTML = "";
+      if (data.subjects.length === 0) {
+        list.innerHTML = "<p>No subjects yet — add one in the Subjects tab.</p>";
+      } else {
+        data.subjects.forEach((s) => {
+          const row = document.createElement("div");
+          row.className = "card";
+          const pct = Math.max(0, Math.min(s.score, 100));
+
+          // Builds comparison sentence if higher_than_percent exists
+          const comparisonText = s.higher_than_percent != null 
+            ? `Higher than ${s.higher_than_percent}% of students` 
+            : "";
+
+          row.innerHTML = `
+            <b><span class="subject-icon">${iconForSubject(s.name)}</span>${s.name} (${s.code})</b>
+            — ${s.score.toFixed(1)}%
+            <span class="grade-badge" style="background:${badgeColorFor(s.letter)}">${s.letter}</span>
+            <div class="progress-bar-bg">
+              <div class="progress-bar-fill" style="width:${pct}%; background:${colorFor(s.score)}"></div>
+            </div>
+            ${comparisonText ? `<p class="comparison-text">${comparisonText}</p>` : ""}
+          `;
+          list.appendChild(row);
+        });
+      }
+    }
+
+    // 2. Render Insight Box
+    const insight = document.getElementById("insight");
+    if (insight) {
+      if (data.subjects.length === 0) {
+        insight.hidden = true;
+      } else {
+        insight.hidden = false;
+        insight.textContent = data.insight;
+      }
+    }
+
+    renderQuickWin(data.quick_win);
+    renderBadges(data);
+    renderAttention(data.attention);
+
+    // 3. Render Stat Cards Summary
+    const summary = document.getElementById("summary");
+    if (summary) {
+      if (data.subjects.length === 0) {
+        summary.innerHTML = "";
+      } else {
+
+        if (data.average >= 80) {
+          triggerConfetti();
+        }
+        
+        summary.innerHTML = `
+          <div class="stat-card">
+            <div class="stat-label">Overall Average</div>
+            <div class="stat-ring" style="--pct:${data.average}">
+              <div class="stat-ring-inner">${data.average.toFixed(0)}%</div>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Class Rank</div>
+            <div class="stat-value">#${data.rank}</div>
+            <div class="stat-sub">out of ${data.class_size} students</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Highest Subject</div>
+            <div class="stat-value" style="font-size:20px">${data.highest ? iconForSubject(data.highest.name) + " " + data.highest.name : "-"}</div>
+            <div class="stat-sub">${data.highest ? data.highest.score.toFixed(1) + "%" : ""}</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Lowest Subject</div>
+            <div class="stat-value" style="font-size:20px">${data.lowest ? iconForSubject(data.lowest.name) + " " + data.lowest.name : "-"}</div>
+            <div class="stat-sub">${data.lowest ? data.lowest.score.toFixed(1) + "%" : ""}</div>
+          </div>
+        `;
+      }
+    }
+
+    // 4. Render Chart
+    renderSubjectChart(data.subjects);
+  }
+
+  document.addEventListener("DOMContentLoaded", async () => {
+    initBanner();
+    
+    const user = await requireAuth();
+    if (!user) return;
+    await loadDashboard();
+
+    // Attach print button handler if element exists
+    const printBtn = document.getElementById("print-btn");
+    if (printBtn) {
+      printBtn.addEventListener("click", () => window.print());
+    }
+  });
+</script>
+</html>

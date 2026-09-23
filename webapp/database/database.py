@@ -3,58 +3,27 @@ import sqlite3
 import os
 
 DB_DIR = os.path.abspath(os.path.dirname(__file__))
+DB_PATH = os.path.join(DB_DIR, "mmu_academic_planner.db")
 
 def create_database_tables():
     try:
         with sqlite3.connect(os.path.join(DB_DIR, "mmu_academic_planner.db")) as conn:
             cursor = conn.cursor()
-            #Create Users table
-            #cursor.execute("create table if not exists users (id INTEGER PRIMARY KEY AUTOINCREMENT, username text not null, password text not null);")
-            #conn.commit()
-            #print("Users table created successfully.")
-            #Create student table
             cursor.execute("create table if not exists students (stu_id integer primary key, stu_name text not null, stu_password text not null);")
             conn.commit()
             print("Students table created successfully.")
-            #Create subject table
             cursor.execute("create table if not exists subjects (sub_id integer primary key, sub_code text not null, sub_name text not   null);")
             conn.commit()
             print("Subjects table created successfully.")
-
-            #Create assessment table
             cursor.execute("create table if not exists assessments (assessment_id integer primary key, sub_code text not null, assessment_name text not null, weight integer , foreign key (sub_code) references subjects(sub_code));")
             conn.commit()
             print("Assessments table created successfully.")
-
-            #Create score table
             cursor.execute("create table if not exists scores (score_id integer primary key, stu_id integer not null, assessment_id integer not null, score real not null, foreign key (stu_id) references students(stu_id), foreign key (assessment_id) references assessments(assessment_id));")
             conn.commit()
             print("Scores table created successfully.")
 
     except sqlite3.Error as e:
         print("Failed to create database:", e)
-
-       
-#def add_user(username, password):
-#    try:
-#        with sqlite3.connect(os.path.join(DB_DIR, "mmu_academic_planner.db")) as conn:
-#            cursor = conn.cursor()
-#            cursor.execute("INSERT INTO users (username, password) VALUES (?, ?)", (username, password))
-#            conn.commit()
-#            print(f"User '{username}' added successfully.")
-#    except sqlite3.Error as e:
-#        print("Failed to add user:", e)
-
-#def get_user(username):
-#    try:
-#        with sqlite3.connect(os.path.join(DB_DIR, "mmu_academic_planner.db")) as conn:
-#            cursor = conn.cursor()
-#            cursor.execute("SELECT * FROM users WHERE username = ?", (username,))
-#            user = cursor.fetchone()
-#            return user
-#    except sqlite3.Error as e:
-#        print("Failed to get user:", e)
-#        return None
 
 
 def add_student(name, password):
@@ -67,8 +36,6 @@ def add_student(name, password):
     except sqlite3.Error as e:
         print("Failed to add student:", e)
 
-import sqlite3
-import os
 
 def get_student_by_id(student_id):
     try:
@@ -156,12 +123,54 @@ def list_assessments_for_student(student_name):
         with sqlite3.connect(os.path.join(DB_DIR, "mmu_academic_planner.db")) as conn:
             conn.row_factory = sqlite3.Row 
             cursor = conn.cursor()
-            cursor.execute("SELECT j.sub_name, j.sub_code,	round(sum((a.weight) * (s.score)/100)) total_score FROM	scores s JOIN assessments a ON 	s.assessment_id = a.assessment_id JOIN subjects j ON j.sub_code = a.sub_code JOIN students st ON st.stu_id = s.stu_id WHERE st.stu_name = ? group by j.sub_name, j.sub_code", (student_name,)) 
+            cursor.execute("SELECT j.sub_name, j.sub_code, round(sum((a.weight) * (s.score)/100)) total_score FROM scores s JOIN assessments a ON s.assessment_id = a.assessment_id JOIN subjects j ON j.sub_code = a.sub_code JOIN students st ON st.stu_id = s.stu_id WHERE st.stu_name = ? group by j.sub_name, j.sub_code", (student_name,)) 
             rows = cursor.fetchall()
             return [dict(r) for r in rows]
     except sqlite3.Error as e:
         print("Failed to list assessments for student:", e)
         return []
+
+
+def get_all_scores_for_subject(sub_code):
+    try:
+        with sqlite3.connect(DB_PATH) as conn:
+            conn.row_factory = sqlite3.Row
+            cursor = conn.cursor()
+            cursor.execute(
+                "SELECT st.stu_id, st.stu_name, round(sum(a.weight * s.score / 100)) total_score "
+                "FROM scores s "
+                "JOIN assessments a ON s.assessment_id = a.assessment_id "
+                "JOIN subjects j ON j.sub_code = a.sub_code "
+                "JOIN students st ON st.stu_id = s.stu_id "
+                "WHERE j.sub_code = ? "
+                "GROUP BY st.stu_id, st.stu_name",
+                (sub_code,),
+            )
+            return [dict(r) for r in cursor.fetchall()]
+    except sqlite3.Error as e:
+        print("Failed to get scores for subject:", e)
+        return []
+
+
+def get_unscored_assessments_for_student(stu_id):
+    try:
+        with sqlite3.connect(DB_PATH) as conn:
+            conn.row_factory = sqlite3.Row
+            cursor = conn.cursor()
+            cursor.execute(
+                "SELECT a.assessment_name, a.weight, j.sub_name, j.sub_code "
+                "FROM assessments a "
+                "JOIN subjects j ON j.sub_code = a.sub_code "
+                "LEFT JOIN scores s ON s.assessment_id = a.assessment_id AND s.stu_id = ? "
+                "WHERE s.score IS NULL "
+                "ORDER BY a.weight DESC",
+                (stu_id,),
+            )
+            return [dict(r) for r in cursor.fetchall()]
+    except sqlite3.Error as e:
+        print("Failed to get unscored assessments:", e)
+        return []
+
 
 def fill_assessments_for_all_students():
     try:
@@ -174,7 +183,7 @@ def fill_assessments_for_all_students():
 
             for student in students:
                 for assessment in assessments:
-                    cursor.execute("INSERT INTO scores (stu_id, assessment_id, score) VALUES (?, ?, ?)", (student[0], assessment[0], random() * 100))  # Random score between 0 and 100
+                    cursor.execute("INSERT INTO scores (stu_id, assessment_id, score) VALUES (?, ?, ?)", (student[0], assessment[0], random() * 100))
             conn.commit()
             print("Filled assessments for all students successfully.")
     except sqlite3.Error as e:
@@ -191,7 +200,6 @@ def init_data():
     add_subject("MATH101", "Mathematics")
     add_subject("CS101", "Programming")
     add_subject("PHYS101", "Physics")
-
 
     add_assessment("MATH101", "Midterm Exam", 30)
     add_assessment("MATH101", "Final Exam", 70)
@@ -283,4 +291,3 @@ def delete_assessment(assessment_id):
             conn.commit()
     except sqlite3.Error as e:
         print("Failed to delete assessment:", e)
-    
