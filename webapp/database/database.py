@@ -213,3 +213,19 @@ def list_subjects():
     except sqlite3.Error as e:
         print("Failed to list subjects:", e)
         return []
+
+
+    def list_assessments_for_subject(sub_code):
+    try:
+        with sqlite3.connect(os.path.join(DB_DIR, "mmu_academic_planner.db")) as conn:
+            conn.row_factory = sqlite3.Row
+            cursor = conn.cursor()
+            rows = cursor.execute(
+                "SELECT * FROM assessments WHERE sub_code = ?", (sub_code,)
+            ).fetchall()
+            return [dict(r) for r in rows]
+    except sqlite3.Error as e:
+        print("Failed to list assessments:", e)
+        return []
+
+    
