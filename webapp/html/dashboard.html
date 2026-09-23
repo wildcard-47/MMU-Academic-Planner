@@ -135,11 +135,11 @@
     `).join("");
   }
 
-  function colorFor(score) {
-    if (score >= 70) return "green";
-    if (score >= 50) return "yellow";
-    return "red";
-  }
+function colorFor(score) {
+  if (score >= 70) return "var(--success-green)";   
+  if (score >= 50) return "var(--warning-orange)"; 
+  return "var(--error-red)";                        
+}
 
   function renderSubjectChart(subjects) {
     const chart = document.getElementById("subject-chart");
