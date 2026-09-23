@@ -2,7 +2,10 @@ from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel
 
 from auth.api import get_current_student
-from database.database import add_subject, list_subjects, list_assessments_for_subject, add_assessment
+from database.database import (
+    add_subject, list_subjects, get_subject_by_code, update_subject, delete_subject,
+    list_assessments_for_subject, add_assessment, update_assessment, delete_assessment,
+)
 from member1_subjects.logic import validate_weight
 
 router = APIRouter()
@@ -51,3 +54,34 @@ def create_assessment(sub_code: str, body: AssessmentIn, student=Depends(get_cur
 
     add_assessment(sub_code, body.name.strip(), weight)
     return {"message": "Assessment added"}
+
+
+@router.put("/api/subjects/{sub_code}")
+def edit_subject(sub_code: str, body: SubjectIn, student=Depends(get_current_student)):
+    if not get_subject_by_code(sub_code):
+        raise HTTPException(status_code=404, detail="Subject not found.")
+    update_subject(sub_code, body.name.strip())
+    return {"message": "Subject updated"}
+
+
+@router.delete("/api/subjects/{sub_code}")
+def remove_subject(sub_code: str, student=Depends(get_current_student)):
+    if not get_subject_by_code(sub_code):
+        raise HTTPException(status_code=404, detail="Subject not found.")
+    delete_subject(sub_code)
+    return {"message": "Subject deleted"}
+
+
+@router.put("/api/subjects/{sub_code}/assessments/{assessment_id}")
+def edit_assessment(sub_code: str, assessment_id: int, body: AssessmentIn, student=Depends(get_current_student)):
+    weight, error = validate_weight(body.weight)
+    if error:
+        raise HTTPException(status_code=400, detail=error)
+    update_assessment(assessment_id, body.name.strip(), weight)
+    return {"message": "Assessment updated"}
+
+
+@router.delete("/api/subjects/{sub_code}/assessments/{assessment_id}")
+def remove_assessment(sub_code: str, assessment_id: int, student=Depends(get_current_student)):
+    delete_assessment(assessment_id)
+    return {"message": "Assessment deleted"}

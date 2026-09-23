@@ -215,7 +215,7 @@ def list_subjects():
         return []
 
 
-    def list_assessments_for_subject(sub_code):
+def list_assessments_for_subject(sub_code):
     try:
         with sqlite3.connect(os.path.join(DB_DIR, "mmu_academic_planner.db")) as conn:
             conn.row_factory = sqlite3.Row
@@ -228,4 +228,59 @@ def list_subjects():
         print("Failed to list assessments:", e)
         return []
 
+
+def get_subject_by_code(code):
+    try:
+        with sqlite3.connect(os.path.join(DB_DIR, "mmu_academic_planner.db")) as conn:
+            conn.row_factory = sqlite3.Row
+            cursor = conn.cursor()
+            row = cursor.execute("SELECT * FROM subjects WHERE sub_code = ?", (code,)).fetchone()
+            return dict(row) if row else None
+    except sqlite3.Error as e:
+        print("Failed to get subject:", e)
+        return None
+
+
+def update_subject(code, name):
+    try:
+        with sqlite3.connect(os.path.join(DB_DIR, "mmu_academic_planner.db")) as conn:
+            cursor = conn.cursor()
+            cursor.execute("UPDATE subjects SET sub_name = ? WHERE sub_code = ?", (name, code))
+            conn.commit()
+    except sqlite3.Error as e:
+        print("Failed to update subject:", e)
+
+
+def delete_subject(code):
+    try:
+        with sqlite3.connect(os.path.join(DB_DIR, "mmu_academic_planner.db")) as conn:
+            cursor = conn.cursor()
+            cursor.execute("DELETE FROM assessments WHERE sub_code = ?", (code,))
+            cursor.execute("DELETE FROM subjects WHERE sub_code = ?", (code,))
+            conn.commit()
+    except sqlite3.Error as e:
+        print("Failed to delete subject:", e)
+
+
+def update_assessment(assessment_id, name, weight):
+    try:
+        with sqlite3.connect(os.path.join(DB_DIR, "mmu_academic_planner.db")) as conn:
+            cursor = conn.cursor()
+            cursor.execute(
+                "UPDATE assessments SET assessment_name = ?, weight = ? WHERE assessment_id = ?",
+                (name, weight, assessment_id),
+            )
+            conn.commit()
+    except sqlite3.Error as e:
+        print("Failed to update assessment:", e)
+
+
+def delete_assessment(assessment_id):
+    try:
+        with sqlite3.connect(os.path.join(DB_DIR, "mmu_academic_planner.db")) as conn:
+            cursor = conn.cursor()
+            cursor.execute("DELETE FROM assessments WHERE assessment_id = ?", (assessment_id,))
+            conn.commit()
+    except sqlite3.Error as e:
+        print("Failed to delete assessment:", e)
     
