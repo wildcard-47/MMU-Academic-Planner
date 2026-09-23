@@ -6,6 +6,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <link rel="icon" type="image/png" href="/html/logo-mmu2x.png">
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+        <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>      
       <style>
             .banner-card {
                 background: linear-gradient(135deg, #003366 0%, #0056b3 100%);
@@ -61,6 +62,16 @@
     </body>
   <script src="/html/js/api.js"></script>
 <script>
+
+  function triggerConfetti() {
+    if (typeof confetti === "function") {
+      confetti({
+        particleCount: 120,
+        spread: 80,
+        origin: { y: 0.6 }
+      });
+    }
+  }  
 
   function initBanner() {
   const quotes = [
@@ -214,6 +225,11 @@ function colorFor(score) {
       if (data.subjects.length === 0) {
         summary.innerHTML = "";
       } else {
+
+        if (data.average >= 80) {
+          triggerConfetti();
+        }
+        
         summary.innerHTML = `
           <div class="stat-card">
             <div class="stat-label">Overall Average</div>
