@@ -50,3 +50,7 @@ async def main():
 @app.get("/dashboard")
 async def main():
     return FileResponse(os.path.join(WEB_DIR, "dashboard.html"))
+
+@app.get("/subjects")
+async def main():
+    return FileResponse(os.path.join(WEB_DIR, "subjects.html"))

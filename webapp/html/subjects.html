@@ -1,0 +1,448 @@
+<html>
+    <head>
+        <title>Subjects</title>
+        <link rel="stylesheet" href="html/css/style.css">
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="icon" type="image/png" href="/html/logo-mmu2x.png">
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+        <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700&display=swap" rel="stylesheet">
+        <style>
+          #modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.45);
+            backdrop-filter: blur(2px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            animation: overlay-fade-in 0.18s ease-out forwards;
+          }
+          #modal-overlay[hidden] {
+            display: none;
+          }
+          .modal {
+            background: #fff;
+            border-radius: 10px;
+            padding: 24px;
+            width: 420px;
+            max-width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            transform: scale(0.95) translateY(8px);
+            opacity: 0;
+            animation: modal-pop-in 0.2s ease-out 0.02s forwards;
+          }
+          .modal-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 8px;
+            margin-top: 16px;
+          }
+          @keyframes overlay-fade-in {
+            from { opacity: 0; }
+            to { opacity: 1; }
+          }
+          @keyframes modal-pop-in {
+            from {
+              opacity: 0;
+              transform: scale(0.95) translateY(8px);
+            }
+            to {
+              opacity: 1;
+              transform: scale(1) translateY(0);
+            }
+          }
+          .subject-card {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+          }
+          .subject-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+          }
+          .subject-title {
+            font-family: 'Poppins', sans-serif;
+            font-size: 1.15rem;
+            font-weight: 600;
+            color: #1d2939;
+          }
+          .action-group {
+            display: flex;
+            gap: 6px;
+          }
+          .btn-sm {
+            padding: 4px 12px;
+            font-size: 0.82rem;
+            border-radius: 6px;
+            border: 1px solid #d0d5dd;
+            background: #f9fafb;
+            color: #344054;
+            cursor: pointer;
+          }
+          .btn-sm:hover {
+            background: #f0f1f3;
+          }
+          .btn-sm.danger {
+            background: #fff;
+            color: #d92d20;
+            border-color: #fecdca;
+          }
+          .btn-sm.danger:hover {
+            background: #fef3f2;
+          }
+          .assessments-list {
+            margin-top: 8px;
+            padding-left: 14px;
+            border-left: 2px solid #eaecf0;
+          }
+          .assessment-row {
+            display: flex;
+            align-items: center;
+            padding: 4px 0;
+            gap: 10px;
+          }
+          .assessment-name {
+            flex: 1;
+            color: #344054;
+          }
+          .assessment-weight {
+            font-weight: 600;
+            color: #667085;
+            min-width: 42px;
+            text-align: right;
+          }
+          .editor-assessment-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 6px;
+            flex-wrap: wrap;
+          }
+          .editor-assessment-row select {
+            flex: 1;
+            min-width: 110px;
+          }
+          .editor-assessment-row input.editor-a-other {
+            flex: 1;
+            min-width: 110px;
+          }
+          .editor-assessment-row input[type="number"] {
+            width: 80px;
+          }
+          .weight-summary {
+            margin-top: 10px;
+          }
+          .weight-summary-label {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.78rem;
+            color: #667085;
+            margin-bottom: 4px;
+          }
+          .weight-bar-bg {
+            width: 100%;
+            height: 6px;
+            background: #eaecf0;
+            border-radius: 3px;
+            overflow: hidden;
+          }
+          .weight-bar-fill {
+            height: 100%;
+            border-radius: 3px;
+            transition: width 0.25s ease;
+          }
+        </style>
+    </head>
+    <body>
+
+<header>
+  <a href="/dashboard" class="logo-container">
+    <img src="/html/logo-mmu2x.png" alt="Multimedia University Logo" class="logo-img">
+    <div class="logo-divider"></div>
+    <span class="logo-subtitle">Academic Planner</span>
+  </a>
+  <nav class="nav-links" id="nav"></nav>
+</header>
+
+<h1>📚 My Subjects</h1>
+
+<div class="card" style="margin-bottom: 1.5rem;">
+  <h2>Add a subject</h2>
+  <label>Subject code</label>
+  <input id="new-sub-code" type="text" placeholder="e.g. MATH101">
+  <label>Subject name</label>
+  <input id="new-sub-name" type="text" placeholder="e.g. Mathematics">
+  <button id="add-subject-btn">Add subject</button>
+  <p id="add-subject-error" class="error-text" hidden></p>
+</div>
+
+<div id="subjects-list"></div>
+
+<div id="modal-overlay" hidden>
+  <div class="modal">
+    <h3 id="modal-title"></h3>
+    <div id="modal-fields"></div>
+    <div class="modal-actions">
+      <button id="modal-cancel-btn" class="secondary">Cancel</button>
+      <button id="modal-confirm-btn">Save</button>
+    </div>
+  </div>
+</div>
+
+    </body>
+  <script src="/html/js/api.js"></script>
+<script>
+
+  const ASSESSMENT_TYPES = ["Midterm Exam", "Final Exam", "Test", "Quiz", "Project", "Other"];
+
+  async function loadSubjects() {
+    const subjects = await apiGet("/api/subjects");
+    const list = document.getElementById("subjects-list");
+    list.innerHTML = "";
+
+    if (subjects.length === 0) {
+      list.innerHTML = "<p>No subjects yet — add one above.</p>";
+      return;
+    }
+
+    for (const subject of subjects) {
+      const card = document.createElement("div");
+      card.className = "card subject-card";
+      card.innerHTML = `
+        <div class="subject-header">
+          <span class="subject-title">${iconForSubject(subject.sub_name)} ${subject.sub_name} <span style="color:#98a2b3">(${subject.sub_code})</span></span>
+          <div class="action-group">
+            <button class="btn-sm edit-subject-btn" data-code="${subject.sub_code}" data-name="${subject.sub_name}">Edit</button>
+            <button class="btn-sm danger delete-subject-btn" data-code="${subject.sub_code}">Delete</button>
+          </div>
+        </div>
+        <div class="assessments-list" id="assessments-${subject.sub_code}"></div>
+        <div class="weight-summary" id="weight-${subject.sub_code}"></div>
+      `;
+      list.appendChild(card);
+      renderAssessmentsReadOnly(subject.sub_code);
+    }
+
+    attachSubjectHandlers();
+  }
+
+  // Read-only display under each subject — no per-row buttons here; all
+  // editing happens inside the subject's Edit modal. Also renders a weight
+  // progress bar showing how much of the grade is set up so far.
+  async function renderAssessmentsReadOnly(subCode) {
+    const assessments = await apiGet(`/api/subjects/${subCode}/assessments`);
+    const el = document.getElementById(`assessments-${subCode}`);
+    const weightEl = document.getElementById(`weight-${subCode}`);
+    if (!el) return;
+
+    if (assessments.length === 0) {
+      el.innerHTML = "<p class='comparison-text'>No assessments yet — click Edit to add some.</p>";
+    } else {
+      el.innerHTML = assessments.map((a) => `
+        <div class="assessment-row">
+          <span class="assessment-name">${a.assessment_name}</span>
+          <span class="assessment-weight">${a.weight}%</span>
+        </div>
+      `).join("");
+    }
+
+    if (weightEl) {
+      let total = 0;
+      for (const a of assessments) {
+        total = total + a.weight;
+      }
+      const pct = Math.min(total, 100);
+      const barColor = total >= 100 ? "#2fa84f" : total >= 60 ? "#0056b3" : "#e0a800";
+      const remainingText = total >= 100 ? "Grade fully set" : `${(100 - total).toFixed(0)}% left to add`;
+
+      weightEl.innerHTML = `
+        <div class="weight-summary-label">
+          <span>${total.toFixed(0)}% of grade set</span>
+          <span>${remainingText}</span>
+        </div>
+        <div class="weight-bar-bg">
+          <div class="weight-bar-fill" style="width:${pct}%; background:${barColor}"></div>
+        </div>
+      `;
+    }
+  }
+
+  function attachSubjectHandlers() {
+    document.querySelectorAll(".edit-subject-btn").forEach((btn) => {
+      btn.onclick = async () => {
+        const code = btn.dataset.code;
+        const name = btn.dataset.name;
+        const saved = await openSubjectEditor(code, name);
+        if (saved) loadSubjects();
+      };
+    });
+
+    document.querySelectorAll(".delete-subject-btn").forEach((btn) => {
+      btn.onclick = async () => {
+        const code = btn.dataset.code;
+        const confirmed = await showConfirm(`Delete subject ${code}? This also deletes its assessments.`);
+        if (!confirmed) return;
+        try {
+          await apiDelete(`/api/subjects/${code}`);
+          loadSubjects();
+        } catch (err) {
+          alert(err.message);
+        }
+      };
+    });
+  }
+
+  // A custom, richer editor: lets you rename the subject AND manage all its
+  // assessments (pick a type from a dropdown or type a custom one via
+  // "Other", edit weight, remove, add new) in one modal, saved together
+  // when you click Save. Resolves true if saved, false if cancelled.
+  function openSubjectEditor(subCode, subName) {
+    return new Promise(async (resolve) => {
+      const overlay = document.getElementById("modal-overlay");
+      document.getElementById("modal-title").textContent = `Edit ${subName}`;
+      const fieldsEl = document.getElementById("modal-fields");
+
+      const assessments = await apiGet(`/api/subjects/${subCode}/assessments`);
+
+      fieldsEl.innerHTML = `
+        <label>Subject name</label>
+        <input id="editor-sub-name" type="text" value="${subName}">
+        <label style="margin-top:12px; display:block;">Assessments</label>
+        <div id="editor-assessments"></div>
+        <button id="editor-add-assessment" type="button" class="btn-sm" style="margin-top:8px;">+ Add assessment</button>
+      `;
+
+      const assessmentsEl = document.getElementById("editor-assessments");
+
+      function renderRow(a) {
+        const row = document.createElement("div");
+        row.className = "editor-assessment-row";
+        row.dataset.id = a.assessment_id || "";
+
+        const existingName = a.assessment_name || "";
+        const isKnownType = ASSESSMENT_TYPES.includes(existingName);
+        const selected = isKnownType ? existingName : (existingName ? "Other" : "Midterm Exam");
+
+        row.innerHTML = `
+          <select class="editor-a-type">
+            ${ASSESSMENT_TYPES.map((t) => `<option value="${t}" ${t === selected ? "selected" : ""}>${t}</option>`).join("")}
+          </select>
+          <input type="text" class="editor-a-other" placeholder="Assessment name"
+                 value="${!isKnownType ? existingName : ""}"
+                 style="display:${selected === "Other" ? "block" : "none"}">
+          <input type="number" class="editor-a-weight" placeholder="Weight %" value="${a.weight ?? ""}">
+          <button type="button" class="btn-sm danger editor-a-remove">×</button>
+        `;
+
+        const typeSelect = row.querySelector(".editor-a-type");
+        const otherInput = row.querySelector(".editor-a-other");
+        typeSelect.addEventListener("change", () => {
+          otherInput.style.display = typeSelect.value === "Other" ? "block" : "none";
+          if (typeSelect.value === "Other") otherInput.focus();
+        });
+
+        row.querySelector(".editor-a-remove").onclick = () => {
+          row.dataset.deleted = "true";
+          row.style.display = "none";
+        };
+        assessmentsEl.appendChild(row);
+      }
+
+      assessments.forEach(renderRow);
+
+      document.getElementById("editor-add-assessment").onclick = () => {
+        renderRow({ assessment_id: "", assessment_name: "", weight: "" });
+      };
+
+      const confirmBtn = document.getElementById("modal-confirm-btn");
+      const cancelBtn = document.getElementById("modal-cancel-btn");
+      confirmBtn.textContent = "Save";
+      confirmBtn.className = "";
+
+      overlay.hidden = false;
+
+      function cleanup() {
+        overlay.hidden = true;
+        confirmBtn.removeEventListener("click", onConfirm);
+        cancelBtn.removeEventListener("click", onCancel);
+      }
+
+      async function onConfirm() {
+        const newName = document.getElementById("editor-sub-name").value.trim();
+        try {
+          if (newName && newName !== subName) {
+            await apiPut(`/api/subjects/${subCode}`, { code: subCode, name: newName });
+          }
+
+          const rows = assessmentsEl.querySelectorAll(".editor-assessment-row");
+          for (const row of rows) {
+            const id = row.dataset.id;
+            const deleted = row.dataset.deleted === "true";
+            const typeValue = row.querySelector(".editor-a-type").value;
+            const otherValue = row.querySelector(".editor-a-other").value.trim();
+            const name = typeValue === "Other" ? otherValue : typeValue;
+            const weight = parseFloat(row.querySelector(".editor-a-weight").value);
+
+            if (deleted) {
+              if (id) await apiDelete(`/api/subjects/${subCode}/assessments/${id}`);
+              continue;
+            }
+            if (!name || isNaN(weight)) continue;
+
+            if (id) {
+              await apiPut(`/api/subjects/${subCode}/assessments/${id}`, { name, weight });
+            } else {
+              await apiPost(`/api/subjects/${subCode}/assessments`, { name, weight });
+            }
+          }
+
+          cleanup();
+          resolve(true);
+        } catch (err) {
+          alert(err.message);
+        }
+      }
+
+      function onCancel() {
+        cleanup();
+        resolve(false);
+      }
+
+      confirmBtn.addEventListener("click", onConfirm);
+      cancelBtn.addEventListener("click", onCancel);
+    });
+  }
+
+  document.getElementById("add-subject-btn").addEventListener("click", async () => {
+    const code = document.getElementById("new-sub-code").value.trim();
+    const name = document.getElementById("new-sub-name").value.trim();
+    const errorEl = document.getElementById("add-subject-error");
+    errorEl.hidden = true;
+
+    try {
+      await apiPost("/api/subjects", { code, name });
+      document.getElementById("new-sub-code").value = "";
+      document.getElementById("new-sub-name").value = "";
+      loadSubjects();
+    } catch (err) {
+      errorEl.textContent = err.message;
+      errorEl.hidden = false;
+    }
+  });
+
+  document.addEventListener("DOMContentLoaded", async () => {
+    const user = await requireAuth();
+    if (!user) return;
+    await loadSubjects();
+  });
+</script>
+</html>
