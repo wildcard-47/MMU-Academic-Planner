@@ -843,7 +843,7 @@ CALCULATE OVERALL PERFORMANCE
 <input
 type="text"
 class="assessment-name"
-placeholder="Assessment name (optional)"
+placeholder="Assessment name"
 >
 
 <input
