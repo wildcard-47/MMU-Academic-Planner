@@ -193,22 +193,22 @@ def fill_assessments_for_all_students():
 def init_data():
     clean_database()
     create_database_tables()
-    add_student("Mayada","password1")
-    add_student("Mohammad","password2")
-    add_student("Rin","password3")
+    #add_student("Mayada","password1")
+    #add_student("Mohammad","password2")
+    #add_student("Rin","password3")
 
-    add_subject("MATH101", "Mathematics")
-    add_subject("CS101", "Programming")
-    add_subject("PHYS101", "Physics")
+    #add_subject("MATH101", "Mathematics")
+    #add_subject("CS101", "Programming")
+    #add_subject("PHYS101", "Physics")
 
-    add_assessment("MATH101", "Midterm Exam", 30)
-    add_assessment("MATH101", "Final Exam", 70)
-    add_assessment("CS101", "Midterm Exam", 30)
-    add_assessment("CS101", "Final Exam", 70)
-    add_assessment("PHYS101", "Midterm Exam", 30)
-    add_assessment("PHYS101", "Final Exam", 70)
+    #add_assessment("MATH101", "Midterm Exam", 30)
+    #add_assessment("MATH101", "Final Exam", 70)
+    #add_assessment("CS101", "Midterm Exam", 30)
+    #add_assessment("CS101", "Final Exam", 70)
+    #add_assessment("PHYS101", "Midterm Exam", 30)
+    #add_assessment("PHYS101", "Final Exam", 70)
 
-    fill_assessments_for_all_students()
+    #fill_assessments_for_all_students()
 
 
 def list_subjects():
