@@ -18,7 +18,8 @@ def load_subject_scores(stu_name):
     subjects = []
     for subject in get_assessments_for_student(stu_name):
         subjects.append(
-            {"name": subject["sub_name"], "code": subject["sub_code"],"score" : subject["total_score"]}
+            {"name": subject["sub_name"], "code": subject["sub_code"],"score" : subject["total_score"],
+             "completed_weight": subject["completed_weight"]}
         )
     return subjects
 

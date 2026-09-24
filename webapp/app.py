@@ -6,6 +6,7 @@ import database.database as db
 from auth.api import router as auth_router
 from dashboard.api import router as dashboard_router
 from member1_subjects.routes import router as subjects_router
+from marks.api import router as marks_router
 from starlette.middleware.sessions import SessionMiddleware
 
 WEB_DIR = os.path.join(os.path.dirname(__file__), "html")
@@ -21,6 +22,9 @@ app.include_router(dashboard_router)
 
 #include the subjects router for handling subject and assessment routes
 app.include_router(subjects_router)
+
+#include the marks router for handling student mark entry routes
+app.include_router(marks_router)
 
 #mount the static files directory for serving HTML files
 app.mount("/html", StaticFiles(directory="html"), name="html")
@@ -54,3 +58,7 @@ async def main():
 @app.get("/subjects")
 async def main():
     return FileResponse(os.path.join(WEB_DIR, "subjects.html"))
+
+@app.get("/marks")
+async def main():
+    return FileResponse(os.path.join(WEB_DIR, "marks.html"))

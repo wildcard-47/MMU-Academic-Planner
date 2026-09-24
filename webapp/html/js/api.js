@@ -34,6 +34,7 @@ async function requireAuth() {
     const initial = student.username.charAt(0).toUpperCase();
     nav.innerHTML = `
       <a href="/subjects">Subjects</a>
+      <a href="/marks">Marks</a>
       <a href="/grades">Grade Planner</a>
       <a href="/dashboard">Dashboard &amp; Reports</a>
       <div class="user-chip">

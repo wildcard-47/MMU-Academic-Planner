@@ -123,7 +123,22 @@ def list_assessments_for_student(student_name):
         with sqlite3.connect(os.path.join(DB_DIR, "mmu_academic_planner.db")) as conn:
             conn.row_factory = sqlite3.Row 
             cursor = conn.cursor()
-            cursor.execute("SELECT j.sub_name, j.sub_code, round(sum((a.weight) * (s.score)/100)) total_score FROM scores s JOIN assessments a ON s.assessment_id = a.assessment_id JOIN subjects j ON j.sub_code = a.sub_code JOIN students st ON st.stu_id = s.stu_id WHERE st.stu_name = ? group by j.sub_name, j.sub_code", (student_name,)) 
+            # total_score is the current performance: the weighted average of the
+            # assessments marked so far (not the points earned out of 100), so a
+            # student with only a 90% midterm shows 90%, not 27%.
+            cursor.execute(
+                "SELECT j.sub_name, j.sub_code, "
+                "round(sum(a.weight * s.score) / sum(a.weight), 1) total_score, "
+                "sum(a.weight) completed_weight "
+                "FROM scores s "
+                "JOIN assessments a ON s.assessment_id = a.assessment_id "
+                "JOIN subjects j ON j.sub_code = a.sub_code "
+                "JOIN students st ON st.stu_id = s.stu_id "
+                "WHERE st.stu_name = ? "
+                "GROUP BY j.sub_name, j.sub_code "
+                "HAVING sum(a.weight) > 0",
+                (student_name,),
+            )
             rows = cursor.fetchall()
             return [dict(r) for r in rows]
     except sqlite3.Error as e:
@@ -137,13 +152,14 @@ def get_all_scores_for_subject(sub_code):
             conn.row_factory = sqlite3.Row
             cursor = conn.cursor()
             cursor.execute(
-                "SELECT st.stu_id, st.stu_name, round(sum(a.weight * s.score / 100)) total_score "
+                "SELECT st.stu_id, st.stu_name, round(sum(a.weight * s.score) / sum(a.weight), 1) total_score "
                 "FROM scores s "
                 "JOIN assessments a ON s.assessment_id = a.assessment_id "
                 "JOIN subjects j ON j.sub_code = a.sub_code "
                 "JOIN students st ON st.stu_id = s.stu_id "
                 "WHERE j.sub_code = ? "
-                "GROUP BY st.stu_id, st.stu_name",
+                "GROUP BY st.stu_id, st.stu_name "
+                "HAVING sum(a.weight) > 0",
                 (sub_code,),
             )
             return [dict(r) for r in cursor.fetchall()]
@@ -291,3 +307,56 @@ def delete_assessment(assessment_id):
             conn.commit()
     except sqlite3.Error as e:
         print("Failed to delete assessment:", e)
+
+
+def list_assessments_with_scores(stu_id):
+    try:
+        with sqlite3.connect(DB_PATH) as conn:
+            conn.row_factory = sqlite3.Row
+            cursor = conn.cursor()
+            cursor.execute(
+                "SELECT j.sub_code, j.sub_name, a.assessment_id, a.assessment_name, a.weight, s.score "
+                "FROM subjects j "
+                "JOIN assessments a ON a.sub_code = j.sub_code "
+                "LEFT JOIN scores s ON s.assessment_id = a.assessment_id AND s.stu_id = ? "
+                "ORDER BY j.sub_code, a.assessment_id",
+                (stu_id,),
+            )
+            return [dict(r) for r in cursor.fetchall()]
+    except sqlite3.Error as e:
+        print("Failed to list assessments with scores:", e)
+        return []
+
+
+def get_assessment_by_id(assessment_id):
+    try:
+        with sqlite3.connect(DB_PATH) as conn:
+            conn.row_factory = sqlite3.Row
+            cursor = conn.cursor()
+            row = cursor.execute(
+                "SELECT * FROM assessments WHERE assessment_id = ?", (assessment_id,)
+            ).fetchone()
+            return dict(row) if row else None
+    except sqlite3.Error as e:
+        print("Failed to get assessment:", e)
+        return None
+
+
+# Saves one student's mark for one assessment, replacing any earlier mark.
+# A score of None removes the mark.
+def save_score(stu_id, assessment_id, score):
+    try:
+        with sqlite3.connect(DB_PATH) as conn:
+            cursor = conn.cursor()
+            cursor.execute(
+                "DELETE FROM scores WHERE stu_id = ? AND assessment_id = ?",
+                (stu_id, assessment_id),
+            )
+            if score is not None:
+                cursor.execute(
+                    "INSERT INTO scores (stu_id, assessment_id, score) VALUES (?, ?, ?)",
+                    (stu_id, assessment_id, score),
+                )
+            conn.commit()
+    except sqlite3.Error as e:
+        print("Failed to save score:", e)

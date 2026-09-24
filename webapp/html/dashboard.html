@@ -178,7 +178,7 @@ function colorFor(score) {
     if (list) {
       list.innerHTML = "";
       if (data.subjects.length === 0) {
-        list.innerHTML = "<p>No subjects yet — add one in the Subjects tab.</p>";
+        list.innerHTML = "<p>No marks yet — add subjects in the Subjects tab, then enter your marks in the Marks tab.</p>";
       } else {
         data.subjects.forEach((s) => {
           const row = document.createElement("div");
@@ -198,6 +198,7 @@ function colorFor(score) {
               <div class="progress-bar-fill" style="width:${pct}%; background:${colorFor(s.score)}"></div>
             </div>
             ${comparisonText ? `<p class="comparison-text">${comparisonText}</p>` : ""}
+            ${s.completed_weight < 100 ? `<p class="comparison-text">Based on ${s.completed_weight}% of the grade marked so far</p>` : ""}
           `;
           list.appendChild(row);
         });
