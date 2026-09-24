@@ -328,7 +328,7 @@
 
             try {
                 await apiPost("/api/login", { username, password });
-                window.location.href = "/dashboard";
+                window.location.href = "/subjects";
             } catch (err) {
                 errorEl.innerText = "Login failed. Please check your credentials.";
             }
