@@ -9,7 +9,7 @@ def create_database_tables():
     try:
         with sqlite3.connect(os.path.join(DB_DIR, "mmu_academic_planner.db")) as conn:
             cursor = conn.cursor()
-            cursor.execute("create table if not exists students (stu_id integer primary key, stu_name text not null, stu_password text not null);")
+            cursor.execute("create table if not exists students (stu_id integer primary key, stu_name text not null UNIQUE, stu_password text not null, active_trimester TEXT);")
             conn.commit()
             print("Students table created successfully.")
             cursor.execute("create table if not exists subjects (sub_id integer primary key, sub_code text not null, sub_name text not   null);")
@@ -207,7 +207,7 @@ def fill_assessments_for_all_students():
 
 
 def init_data():
-    clean_database()
+    #clean_database()
     create_database_tables()
     #add_student("Mayada","password1")
     #add_student("Mohammad","password2")
