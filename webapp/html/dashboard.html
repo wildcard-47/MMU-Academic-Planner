@@ -6,7 +6,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <link rel="icon" type="image/png" href="/html/logo-mmu2x.png">
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-        <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>      
+        <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
       <style>
             .banner-card {
                 background: linear-gradient(135deg, #003366 0%, #0056b3 100%);
@@ -45,11 +45,11 @@
     </div>
 </div>
 
-<h1>📊 Academic Dashboard</h1>
+<h1>📊 Academic Dashboard <span id="trimester-label" style="color:#98a2b3; font-size:1rem;"></span></h1>
 <div id="insight" class="insight-banner" hidden></div>
-<div id="quickwin" class="quickwin-banner" hidden></div>
 <div id="badges" class="badges-row"></div>
 <div id="summary" class="stats-row"></div>
+<div id="setup-warnings" class="quickwin-banner" hidden></div>
 <div id="attention-section" hidden>
   <h2>📝 What Needs Attention</h2>
   <div id="attention-list" class="card"></div>
@@ -57,6 +57,16 @@
 <div id="subjects-list"></div>
 <h2>Compare Your Subjects</h2>
 <div id="subject-chart" class="card"></div>
+<div id="history-section" hidden>
+  <h2>🎓 GPA by Trimester</h2>
+  <div class="card">
+    <table>
+      <tr><th>Trimester</th><th>Subjects</th><th>Credits</th><th>GPA</th></tr>
+      <tbody id="history-rows"></tbody>
+    </table>
+    <p class="comparison-text">GPA uses MMU grade points (A+/A = 4.00 … F = 0.00) weighted by credit hours. Subjects that are not fully marked use the current mark, so the GPA is a projection until the trimester ends.</p>
+  </div>
+</div>
 <button id="print-btn" class="no-print">🖨️ Print / Export Report</button>
 
     </body>
@@ -71,7 +81,7 @@
         origin: { y: 0.6 }
       });
     }
-  }  
+  }
 
   function initBanner() {
   const quotes = [
@@ -97,37 +107,18 @@
     const badgesEl = document.getElementById("badges");
     const badges = [];
 
-    if (data.subjects.some((s) => s.higher_than_percent === 100)) {
-      badges.push("🥇 Top of the Class");
+    const ranked = data.subjects.filter((s) => s.class_size > 1);
+    if (ranked.some((s) => s.rank === 1)) {
+      badges.push("🥇 #1 in a Subject");
     }
     if (data.subjects.length > 0 && data.subjects.every((s) => s.score >= 70)) {
       badges.push("🌟 Well-Rounded");
     }
-    if (data.class_size > 1 && data.rank / data.class_size <= 0.34) {
-      badges.push("🎯 Top Third");
+    if (ranked.length > 0 && ranked.every((s) => s.rank / s.class_size <= 0.34)) {
+      badges.push("🎯 Top Third in Every Subject");
     }
 
     badgesEl.innerHTML = badges.map((b) => `<span class="achievement-badge">${b}</span>`).join("");
-  }
-
-  function renderQuickWin(quickWin) {
-    const el = document.getElementById("quickwin");
-    if (!quickWin || quickWin.status === "already_first") {
-      el.hidden = true;
-      return;
-    }
-    el.hidden = false;
-    if (quickWin.status === "ok") {
-      el.textContent =
-        `🚀 Quick win: score ${quickWin.required_score.toFixed(1)}% on your next ` +
-        `${quickWin.subject_name} assessment to move up a class rank.`;
-    } else if (quickWin.status === "no_remaining_assessments") {
-      el.textContent = `All assessments in ${quickWin.subject_name} are already scored — check another subject to improve your rank.`;
-    } else if (quickWin.status === "not_achievable") {
-      el.textContent = `Even a perfect score in ${quickWin.subject_name} alone wouldn't be enough to move up a rank right now — every subject counts.`;
-    } else {
-      el.hidden = true;
-    }
   }
 
   function renderAttention(attention) {
@@ -140,16 +131,16 @@
     section.hidden = false;
     list.innerHTML = attention.map((a) => `
       <div class="attention-row">
-        <span>${iconForSubject(a.sub_name)} ${a.assessment_name} — ${a.sub_name}</span>
+        <span>${iconForSubject(a.sub_name)} ${escapeHtml(a.assessment_name)} — ${escapeHtml(a.sub_name)}</span>
         <span class="attention-weight">${a.weight}%</span>
       </div>
     `).join("");
   }
 
 function colorFor(score) {
-  if (score >= 70) return "var(--success-green)";   
-  if (score >= 50) return "var(--warning-orange)"; 
-  return "var(--error-red)";                        
+  if (score >= 70) return "var(--success-green)";
+  if (score >= 50) return "var(--warning-orange)";
+  return "var(--error-red)";
 }
 
   function renderSubjectChart(subjects) {
@@ -161,44 +152,84 @@ function colorFor(score) {
     }
     chart.innerHTML = subjects.map((s) => `
       <div class="chart-row">
-        <span class="chart-label">${iconForSubject(s.name)} ${s.name}</span>
+        <span class="chart-label">${iconForSubject(s.name)} ${escapeHtml(s.name)}</span>
         <div class="chart-bar-bg">
           <div class="chart-bar-fill" style="width:${Math.max(0, Math.min(s.score, 100))}%; background:${colorFor(s.score)}"></div>
         </div>
-        <span class="chart-value">${s.score.toFixed(0)}%</span>
+        <span class="chart-value">${s.score.toFixed(1)}%</span>
       </div>
+    `).join("");
+  }
+
+  function renderSetupWarnings(warnings) {
+    const el = document.getElementById("setup-warnings");
+    if (!warnings || warnings.length === 0) {
+      el.hidden = true;
+      return;
+    }
+    el.hidden = false;
+    el.textContent = "⚠️ Not fully set up: " + warnings
+      .map((w) => `${w.code} (${w.total_weight}% of 100% added)`)
+      .join(", ") + ". Add the missing assessments in the Subjects tab so your marks are accurate.";
+  }
+
+  // "On track" line under each subject, using the target set in the Grade Planner.
+  function targetText(target, subId) {
+    const link = `/grades?subject=${subId}`;
+    if (!target) return `<a href="${link}">🎯 Set a target grade</a>`;
+    if (target.status === "achieved") return `🎯 Target ${target.grade}: already secured ✅`;
+    if (target.status === "impossible") return `🎯 Target ${target.grade}: no longer reachable — consider a new target in the <a href="${link}">Grade Planner</a>`;
+    return `🎯 Target ${target.grade}: you need an average of ${target.score.toFixed(1)}% on the remaining assessments`;
+  }
+
+  function renderHistory(history, current) {
+    const section = document.getElementById("history-section");
+    if (!history || history.length === 0) {
+      section.hidden = true;
+      return;
+    }
+    section.hidden = false;
+    document.getElementById("history-rows").innerHTML = history.map((h) => `
+      <tr ${h.trimester === current ? 'style="font-weight:600"' : ""}>
+        <td>${escapeHtml(h.trimester)}${h.trimester === current ? " (current)" : ""}</td>
+        <td>${h.subjects}</td>
+        <td>${h.credits}</td>
+        <td>${h.gpa.toFixed(2)}</td>
+      </tr>
     `).join("");
   }
 
   async function loadDashboard() {
     const data = await apiGet("/api/dashboard");
+    document.getElementById("trimester-label").textContent = `— ${data.trimester}`;
 
     // 1. Render Subjects List
     const list = document.getElementById("subjects-list");
     if (list) {
       list.innerHTML = "";
       if (data.subjects.length === 0) {
-        list.innerHTML = "<p>No marks yet — add subjects in the Subjects tab, then enter your marks in the Marks tab.</p>";
+        list.innerHTML = "<p>No marks in this trimester yet — add subjects in the Subjects tab, then enter your marks in the Marks tab.</p>";
       } else {
         data.subjects.forEach((s) => {
           const row = document.createElement("div");
           row.className = "card";
           const pct = Math.max(0, Math.min(s.score, 100));
 
-          // Builds comparison sentence if higher_than_percent exists
-          const comparisonText = s.higher_than_percent != null 
-            ? `Higher than ${s.higher_than_percent}% of students` 
-            : "";
+          // Only classmates who take the same subject code this trimester are compared.
+          const comparisonText = s.class_size > 1
+            ? `🏅 Rank #${s.rank} of ${s.class_size} students taking ${escapeHtml(s.code)} this trimester · higher than ${s.higher_than_percent}% of them`
+            : `No other students are taking ${escapeHtml(s.code)} this trimester yet`;
 
           row.innerHTML = `
-            <b><span class="subject-icon">${iconForSubject(s.name)}</span>${s.name} (${s.code})</b>
+            <b><span class="subject-icon">${iconForSubject(s.name)}</span>${escapeHtml(s.name)} (${escapeHtml(s.code)} · ${s.credit_hours} cr)</b>
             — ${s.score.toFixed(1)}%
             <span class="grade-badge" style="background:${badgeColorFor(s.letter)}">${s.letter}</span>
             <div class="progress-bar-bg">
               <div class="progress-bar-fill" style="width:${pct}%; background:${colorFor(s.score)}"></div>
             </div>
-            ${comparisonText ? `<p class="comparison-text">${comparisonText}</p>` : ""}
+            <p class="comparison-text">${comparisonText}</p>
             ${s.completed_weight < 100 ? `<p class="comparison-text">Based on ${s.completed_weight}% of the grade marked so far</p>` : ""}
+            <p class="comparison-text">${targetText(s.target, s.id)}</p>
           `;
           list.appendChild(row);
         });
@@ -216,9 +247,10 @@ function colorFor(score) {
       }
     }
 
-    renderQuickWin(data.quick_win);
     renderBadges(data);
     renderAttention(data.attention);
+    renderSetupWarnings(data.setup_warnings);
+    renderHistory(data.history, data.trimester);
 
     // 3. Render Stat Cards Summary
     const summary = document.getElementById("summary");
@@ -230,27 +262,34 @@ function colorFor(score) {
         if (data.average >= 80) {
           triggerConfetti();
         }
-        
+
         summary.innerHTML = `
           <div class="stat-card">
             <div class="stat-label">Overall Average</div>
             <div class="stat-ring" style="--pct:${data.average}">
-              <div class="stat-ring-inner">${data.average.toFixed(0)}%</div>
+              <div class="stat-ring-inner">${data.average.toFixed(1)}%</div>
             </div>
           </div>
           <div class="stat-card">
-            <div class="stat-label">Class Rank</div>
-            <div class="stat-value">#${data.rank}</div>
-            <div class="stat-sub">out of ${data.class_size} students</div>
+            <div class="stat-label">Trimester GPA</div>
+            <div class="stat-value">${data.gpa !== null ? data.gpa.toFixed(2) : "-"}</div>
+            <div class="stat-sub">CGPA ${data.cgpa !== null ? data.cgpa.toFixed(2) : "-"}</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Best Subject Rank</div>
+            <div class="stat-value">${data.best_rank ? "#" + data.best_rank.rank : "-"}</div>
+            <div class="stat-sub">${data.best_rank
+              ? `of ${data.best_rank.class_size} in ${escapeHtml(data.best_rank.code)}`
+              : "no classmates in your subjects yet"}</div>
           </div>
           <div class="stat-card">
             <div class="stat-label">Highest Subject</div>
-            <div class="stat-value" style="font-size:20px">${data.highest ? iconForSubject(data.highest.name) + " " + data.highest.name : "-"}</div>
+            <div class="stat-value" style="font-size:20px">${data.highest ? iconForSubject(data.highest.name) + " " + escapeHtml(data.highest.name) : "-"}</div>
             <div class="stat-sub">${data.highest ? data.highest.score.toFixed(1) + "%" : ""}</div>
           </div>
           <div class="stat-card">
             <div class="stat-label">Lowest Subject</div>
-            <div class="stat-value" style="font-size:20px">${data.lowest ? iconForSubject(data.lowest.name) + " " + data.lowest.name : "-"}</div>
+            <div class="stat-value" style="font-size:20px">${data.lowest ? iconForSubject(data.lowest.name) + " " + escapeHtml(data.lowest.name) : "-"}</div>
             <div class="stat-sub">${data.lowest ? data.lowest.score.toFixed(1) + "%" : ""}</div>
           </div>
         `;
@@ -263,7 +302,7 @@ function colorFor(score) {
 
   document.addEventListener("DOMContentLoaded", async () => {
     initBanner();
-    
+
     const user = await requireAuth();
     if (!user) return;
     await loadDashboard();

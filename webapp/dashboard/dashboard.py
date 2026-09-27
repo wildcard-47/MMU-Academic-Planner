@@ -1,9 +1,42 @@
-from database.database import list_assessments_for_student, list_students
+from database.database import (
+    list_subjects, list_all_subjects_for_student, list_assessments_for_subject,
+    get_class_scores_for_subject,
+)
+from dashboard.grading import (
+    percent_to_letter, percent_to_points, calculate_gpa, letter_to_minimum, current_percentage,
+)
+from member2_grades.logic import calculate_overall, calculate_required_score
 
+
+# Current % in one subject (shared current_percentage) plus the weight marked so far.
+# Returns (score, completed_weight); score is None when nothing is marked.
+def subject_current_score(assessments):
+    completed_weight = sum(a["weight"] for a in assessments if a["score"] is not None)
+    return current_percentage(assessments), completed_weight
+
+
+# Every classmate's current % in one subject code and trimester, worked out with
+# the same function as the student's own score, so equal marks give equal scores.
+def get_class_scores(trimester, code):
+    per_student = {}
+    for row in get_class_scores_for_subject(trimester, code):
+        if row["stu_id"] not in per_student:
+            per_student[row["stu_id"]] = []
+        per_student[row["stu_id"]].append(row)
+    scores = []
+    for stu_id, assessments in per_student.items():
+        score = current_percentage(assessments)
+        if score is not None:
+            scores.append({"stu_id": stu_id, "total_score": score})
+    return scores
+
+
+# Average weighted by credit hours, so a 4-credit subject counts more than a 2-credit one.
 def calculate_average(subjects):
-    if not subjects:
+    total_credits = sum(s["credit_hours"] for s in subjects)
+    if total_credits == 0:
         return 0
-    return sum(s["score"] for s in subjects) / len(subjects)
+    return sum(s["score"] * s["credit_hours"] for s in subjects) / total_credits
 
 def find_highest(subjects):
     return max(subjects, key=lambda s: s["score"]) if subjects else None
@@ -11,47 +44,18 @@ def find_highest(subjects):
 def find_lowest(subjects):
     return min(subjects, key=lambda s: s["score"]) if subjects else None
 
-def get_assessments_for_student(student_name):
-    return list_assessments_for_student(student_name)
 
-def get_dashboard_data():
-    return {
-        "subjects": [],
-        "average": 0,
-        "highest": None,
-        "lowest": None
-    }
 def calculate_percentile(my_score, other_scores):
     if not other_scores:
         return None
     higher_than_count = sum(1 for score in other_scores if score < my_score)
     return round((higher_than_count / len(other_scores)) * 100)
 
-def get_all_students_overall_averages():
-    results = []
-    for student in list_students():
-        stu_id, stu_name = student[0], student[1]
-        subjects = get_assessments_for_student(stu_name)
-        if subjects:
-            average = calculate_average([{"score": s["total_score"]} for s in subjects])
-            results.append({"stu_id": stu_id, "average": average})
-    return results
 
-def calculate_rank(my_average, other_averages):
-    if not other_averages:
-        return 1, 1
-    rank = 1 + sum(1 for avg in other_averages if avg > my_average)
-    total = len(other_averages) + 1
-    return rank, total
-
-def get_insight_message(rank, total):
-    if total <= 1:
-        return "Add more subjects and scores to see how you compare with classmates!"
-    share = rank / total
-    if rank == 1:
-        return "🏆 You're currently ranked #1 in your class overall — amazing work!"
-    if share <= 0.34:
-        return f"🎉 Great job! You're in the top third of your class (rank {rank} of {total})."
-    if share <= 0.67:
-        return f"👍 You're holding steady in the middle of the pack (rank {rank} of {total}). A little more effort could push you higher!"
-    return f"💪 You're currently rank {rank} of {total}."
+# Rank inside one subject: 1 + number of classmates with a higher score.
+# Everyone in the subject has the same assessments, so this is a fair comparison.
+# (There is no overall class rank: students take different subjects, so their
+# averages can't be compared fairly.)
+def calculate_subject_rank(my_score, other_scores):
+    rank = 1 + sum(1 for score in other_scores if score > my_score)
+    return rank, len(other_scores) + 1
