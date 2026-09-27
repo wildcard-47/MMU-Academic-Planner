@@ -12,7 +12,7 @@ from starlette.middleware.sessions import SessionMiddleware
 WEB_DIR = os.path.join(os.path.dirname(__file__), "html")
 
 app = FastAPI()
-app.add_middleware(SessionMiddleware, secret_key="your-secret-key")
+app.add_middleware(SessionMiddleware, secret_key=os.environ.get("SESSION_SECRET") or secrets.token_hex(32))
 
 #include the auth router for handling authentication-related routes (login and signup)
 app.include_router(auth_router)

@@ -105,16 +105,7 @@ def clean_database():
     except sqlite3.Error as e:
         print("Failed to clean database:", e)
 
-def list_students():
-    try:
-        with sqlite3.connect(os.path.join(DB_DIR, "mmu_academic_planner.db")) as conn:
-            cursor = conn.cursor()
-            cursor.execute("SELECT * FROM students")
-            students = cursor.fetchall()
-            return students
-    except sqlite3.Error as e:
-        print("Failed to list students:", e)
-        return []
+
 
 def list_assessments_for_student(student_name):
     try:
@@ -358,3 +349,16 @@ def save_score(stu_id, assessment_id, score):
             conn.commit()
     except sqlite3.Error as e:
         print("Failed to save score:", e)
+def get_class_scores_for_subject(trimester, code):
+    try:
+        with get_connection() as conn:
+            rows = conn.execute(
+                "SELECT j.stu_id, a.weight, a.score "
+                "FROM subjects j JOIN assessments a ON a.sub_id = j.sub_id "
+                "WHERE j.trimester = ? AND j.sub_code = ?",
+                (trimester, code),
+            ).fetchall()
+            return [dict(r) for r in rows]
+    except sqlite3.Error as e:
+        print("Failed to get class scores:", e)
+        return []
