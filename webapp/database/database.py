@@ -26,29 +26,27 @@ def create_database_tables():
         print("Failed to create database:", e)
 
 
-def add_student(name, password):
+def add_student(name, password_hash, trimester):
     try:
-        with sqlite3.connect(os.path.join(DB_DIR, "mmu_academic_planner.db")) as conn:
-            cursor = conn.cursor()
-            cursor.execute("INSERT INTO students (stu_name, stu_password) VALUES (?, ?)", (name, password))
+        with get_connection() as conn:
+            conn.execute(
+                "INSERT INTO students (stu_name, stu_password, active_trimester) VALUES (?, ?, ?)",
+                (name, password_hash, trimester),
+            )
             conn.commit()
-            print(f"Student '{name}' added successfully.")
+            return True
     except sqlite3.Error as e:
         print("Failed to add student:", e)
+        return False
 
 
-def get_student_by_id(student_id):
+def get_student(username):
     try:
-        with sqlite3.connect(os.path.join(DB_DIR, "mmu_academic_planner.db")) as conn:
-            conn.row_factory = sqlite3.Row
-            cursor = conn.cursor()
-            row = cursor.execute(
-                "SELECT * FROM students WHERE stu_id = ?",(student_id,),).fetchone()
-            if row is None:
-                return None
-            return dict(row) 
+        with get_connection() as conn:
+            row = conn.execute("SELECT * FROM students WHERE stu_name = ?", (username,)).fetchone()
+            return dict(row) if row else None
     except sqlite3.Error as e:
-        print("Failed to get student by ID:", e)
+        print("Failed to get student:", e)
         return None
 
 def get_student(username):
