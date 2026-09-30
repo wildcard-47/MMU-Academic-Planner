@@ -206,6 +206,17 @@
 
   const ASSESSMENT_TYPES = ["Midterm Exam", "Final Exam", "Test", "Quiz", "Project", "Other"];
 
+  // Escapes text before it's inserted into HTML (via innerHTML or an
+  // attribute value), so a subject/assessment name like
+  // <img src=x onerror=alert(1)> is shown as harmless text instead of
+  // being executed as real HTML/JS. Never skip this for anything a
+  // student typed in.
+  function escapeHtml(text) {
+    const div = document.createElement("div");
+    div.textContent = text ?? "";
+    return div.innerHTML.replaceAll('"', "&quot;").replaceAll("'", "&#39;");
+  }
+
   async function loadSubjects() {
     const subjects = await apiGet("/api/subjects");
     const list = document.getElementById("subjects-list");
@@ -221,9 +232,9 @@
       card.className = "card subject-card";
       card.innerHTML = `
         <div class="subject-header">
-          <span class="subject-title">${iconForSubject(subject.sub_name)} ${subject.sub_name} <span style="color:#98a2b3">(${subject.sub_code})</span></span>
+          <span class="subject-title">${iconForSubject(subject.sub_name)} ${escapeHtml(subject.sub_name)} <span style="color:#98a2b3">(${escapeHtml(subject.sub_code)})</span></span>
           <div class="action-group">
-            <button class="btn-sm edit-subject-btn" data-id="${subject.sub_id}" data-name="${subject.sub_name}" data-credits="${subject.credit_hours}">Edit</button>
+            <button class="btn-sm edit-subject-btn" data-id="${subject.sub_id}" data-name="${escapeHtml(subject.sub_name)}" data-credits="${subject.credit_hours}">Edit</button>
             <button class="btn-sm danger delete-subject-btn" data-id="${subject.sub_id}">Delete</button>
           </div>
         </div>
@@ -251,7 +262,7 @@
     } else {
       el.innerHTML = assessments.map((a) => `
         <div class="assessment-row">
-          <span class="assessment-name">${a.assessment_name}</span>
+          <span class="assessment-name">${escapeHtml(a.assessment_name)}</span>
           <span class="assessment-weight">${a.weight}%</span>
         </div>
       `).join("");
@@ -319,7 +330,7 @@
 
       fieldsEl.innerHTML = `
         <label>Subject name</label>
-        <input id="editor-sub-name" type="text" value="${subName}">
+        <input id="editor-sub-name" type="text" value="${escapeHtml(subName)}">
         <label style="margin-top:12px;">Credit hours</label>
         <input id="editor-sub-credits" type="number" value="${subCredits}" min="1" max="10" style="width:70px;">
         <label style="margin-top:12px; display:block;">Assessments</label>
@@ -343,7 +354,7 @@
             ${ASSESSMENT_TYPES.map((t) => `<option value="${t}" ${t === selected ? "selected" : ""}>${t}</option>`).join("")}
           </select>
           <input type="text" class="editor-a-other" placeholder="Assessment name"
-                 value="${!isKnownType ? existingName : ""}"
+                 value="${!isKnownType ? escapeHtml(existingName) : ""}"
                  style="display:${selected === "Other" ? "block" : "none"}">
           <input type="number" class="editor-a-weight" placeholder="Weight %" value="${a.weight ?? ""}">
           <button type="button" class="btn-sm danger editor-a-remove">×</button>
