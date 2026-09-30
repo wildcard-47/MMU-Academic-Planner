@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
+import secrets
 import os
 import database.database as db
 from auth.api import router as auth_router
@@ -62,3 +63,7 @@ async def main():
 @app.get("/marks")
 async def main():
     return FileResponse(os.path.join(WEB_DIR, "marks.html"))
+
+@app.get("/grades")
+async def main():
+    return FileResponse(os.path.join(WEB_DIR, "grades.html"))
