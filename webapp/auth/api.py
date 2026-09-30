@@ -5,6 +5,27 @@ from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 from database.database import get_student_by_id, list_trimesters_for_student, set_active_trimester
 router = APIRouter()
+from collections import defaultdict
+from time import time
+
+# Very simple in-memory brute-force protection: tracks failed login attempts
+# per username. Resets on server restart, and won't work across multiple
+# server instances - a real production system would use Redis or a shared
+# database table instead. Good enough to block naive repeated guessing.
+_failed_attempts = defaultdict(list)
+MAX_ATTEMPTS = 5
+LOCKOUT_SECONDS = 60
+
+
+def _is_locked_out(username):
+    now = time()
+    attempts = [t for t in _failed_attempts[username] if now - t < LOCKOUT_SECONDS]
+    _failed_attempts[username] = attempts
+    return len(attempts) >= MAX_ATTEMPTS
+
+
+def _record_failed_attempt(username):
+    _failed_attempts[username].append(time())
 
 
 class Credentials(BaseModel):
@@ -36,10 +57,20 @@ def signup(credentials: Credentials):
 
 @router.post("/api/login")
 def login(credentials: Credentials, request: Request):
-    stu_id, success = auth_login(credentials.username.strip(), credentials.password)
+    username = credentials.username.strip()
+
+    if _is_locked_out(username):
+        return JSONResponse(
+            content={"detail": "Too many failed attempts. Try again in a minute."},
+            status_code=429,
+        )
+
+    stu_id, success = auth_login(username, credentials.password)
     if success:
         request.session["stu_id"] = stu_id
         return JSONResponse(content={"message": "Login successful"}, status_code=200)
+
+    _record_failed_attempt(username)
     return JSONResponse(content={"detail": "Wrong username or password."}, status_code=400)
 
 
