@@ -326,3 +326,18 @@ def get_class_scores_for_subject(trimester, code):
     except sqlite3.Error as e:
         print("Failed to get class scores:", e)
         return []
+
+def list_assessments_with_scores(stu_id, trimester):
+    try:
+        with get_connection() as conn:
+            rows = conn.execute(
+                "SELECT j.sub_code, j.sub_name, a.assessment_id, a.assessment_name, a.weight, a.score "
+                "FROM subjects j JOIN assessments a ON a.sub_id = j.sub_id "
+                "WHERE j.stu_id = ? AND j.trimester = ? "
+                "ORDER BY j.sub_code, a.assessment_id",
+                (stu_id, trimester),
+            ).fetchall()
+            return [dict(r) for r in rows]
+    except sqlite3.Error as e:
+        print("Failed to list assessments with scores:", e)
+        return []

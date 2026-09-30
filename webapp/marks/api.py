@@ -4,7 +4,7 @@ from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel
 
 from auth.api import get_current_student
-from database.database import list_assessments_with_scores, get_assessment_by_id, save_score
+from database.database import list_assessments_with_scores, get_assessment, save_score
 from member1_subjects.logic import calculate_subject_performance, validate_score
 from dashboard.grading import percent_to_letter
 
@@ -16,7 +16,7 @@ class MarkIn(BaseModel):
 @router.get("/api/marks")
 def get_marks(student=Depends(get_current_student)):
     subjects = {}
-    for row in list_assessments_with_scores(student["stu_id"]):
+    for row in list_assessments_with_scores(student["stu_id"], student["active_trimester"]):
         code = row["sub_code"]
         if code not in subjects:
             subjects[code] = {"code": code, "name": row["sub_name"], "assessments": []}
@@ -42,10 +42,10 @@ def get_marks(student=Depends(get_current_student)):
 
 @router.put("/api/marks/{assessment_id}")
 def update_mark(assessment_id: int, body: MarkIn, student=Depends(get_current_student)):
-    if not get_assessment_by_id(assessment_id):
+    if not get_assessment(student["stu_id"], assessment_id):
         raise HTTPException(status_code=404, detail="Assessment not found.")
     score, error = validate_score(body.score)
     if error:
         raise HTTPException(status_code=400, detail=error)
-    save_score(student["stu_id"], assessment_id, score)
+    save_score(assessment_id, score)
     return {"message": "Mark saved"}
