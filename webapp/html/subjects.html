@@ -181,6 +181,8 @@
   <input id="new-sub-code" type="text" placeholder="e.g. MATH101">
   <label>Subject name</label>
   <input id="new-sub-name" type="text" placeholder="e.g. Mathematics">
+  <label>Credit hours</label>
+  <input id="new-sub-credits" type="number" value="3" min="1" max="10" style="width:70px;">
   <button id="add-subject-btn">Add subject</button>
   <p id="add-subject-error" class="error-text" hidden></p>
 </div>
@@ -221,15 +223,15 @@
         <div class="subject-header">
           <span class="subject-title">${iconForSubject(subject.sub_name)} ${subject.sub_name} <span style="color:#98a2b3">(${subject.sub_code})</span></span>
           <div class="action-group">
-            <button class="btn-sm edit-subject-btn" data-code="${subject.sub_code}" data-name="${subject.sub_name}">Edit</button>
-            <button class="btn-sm danger delete-subject-btn" data-code="${subject.sub_code}">Delete</button>
+            <button class="btn-sm edit-subject-btn" data-id="${subject.sub_id}" data-name="${subject.sub_name}" data-credits="${subject.credit_hours}">Edit</button>
+            <button class="btn-sm danger delete-subject-btn" data-id="${subject.sub_id}">Delete</button>
           </div>
         </div>
-        <div class="assessments-list" id="assessments-${subject.sub_code}"></div>
-        <div class="weight-summary" id="weight-${subject.sub_code}"></div>
+        <div class="assessments-list" id="assessments-${subject.sub_id}"></div>
+        <div class="weight-summary" id="weight-${subject.sub_id}"></div>
       `;
       list.appendChild(card);
-      renderAssessmentsReadOnly(subject.sub_code);
+      renderAssessmentsReadOnly(subject.sub_id);
     }
 
     attachSubjectHandlers();
@@ -238,10 +240,10 @@
   // Read-only display under each subject — no per-row buttons here; all
   // editing happens inside the subject's Edit modal. Also renders a weight
   // progress bar showing how much of the grade is set up so far.
-  async function renderAssessmentsReadOnly(subCode) {
-    const assessments = await apiGet(`/api/subjects/${subCode}/assessments`);
-    const el = document.getElementById(`assessments-${subCode}`);
-    const weightEl = document.getElementById(`weight-${subCode}`);
+  async function renderAssessmentsReadOnly(subId) {
+    const assessments = await apiGet(`/api/subjects/${subId}/assessments`);
+    const el = document.getElementById(`assessments-${subId}`);
+    const weightEl = document.getElementById(`weight-${subId}`);
     if (!el) return;
 
     if (assessments.length === 0) {
@@ -279,20 +281,21 @@
   function attachSubjectHandlers() {
     document.querySelectorAll(".edit-subject-btn").forEach((btn) => {
       btn.onclick = async () => {
-        const code = btn.dataset.code;
+        const subId = btn.dataset.id;
         const name = btn.dataset.name;
-        const saved = await openSubjectEditor(code, name);
+        const credits = btn.dataset.credits;
+        const saved = await openSubjectEditor(subId, name, credits);
         if (saved) loadSubjects();
       };
     });
 
     document.querySelectorAll(".delete-subject-btn").forEach((btn) => {
       btn.onclick = async () => {
-        const code = btn.dataset.code;
-        const confirmed = await showConfirm(`Delete subject ${code}? This also deletes its assessments.`);
+        const subId = btn.dataset.id;
+        const confirmed = await showConfirm("Delete this subject? This also deletes its assessments.");
         if (!confirmed) return;
         try {
-          await apiDelete(`/api/subjects/${code}`);
+          await apiDelete(`/api/subjects/${subId}`);
           loadSubjects();
         } catch (err) {
           alert(err.message);
@@ -301,21 +304,24 @@
     });
   }
 
-  // A custom, richer editor: lets you rename the subject AND manage all its
-  // assessments (pick a type from a dropdown or type a custom one via
-  // "Other", edit weight, remove, add new) in one modal, saved together
-  // when you click Save. Resolves true if saved, false if cancelled.
-  function openSubjectEditor(subCode, subName) {
+  // A custom, richer editor: lets you rename the subject, change credit
+  // hours, AND manage all its assessments (pick a type from a dropdown or
+  // type a custom one via "Other", edit weight, remove, add new) in one
+  // modal, saved together when you click Save. Resolves true if saved,
+  // false if cancelled.
+  function openSubjectEditor(subId, subName, subCredits) {
     return new Promise(async (resolve) => {
       const overlay = document.getElementById("modal-overlay");
       document.getElementById("modal-title").textContent = `Edit ${subName}`;
       const fieldsEl = document.getElementById("modal-fields");
 
-      const assessments = await apiGet(`/api/subjects/${subCode}/assessments`);
+      const assessments = await apiGet(`/api/subjects/${subId}/assessments`);
 
       fieldsEl.innerHTML = `
         <label>Subject name</label>
         <input id="editor-sub-name" type="text" value="${subName}">
+        <label style="margin-top:12px;">Credit hours</label>
+        <input id="editor-sub-credits" type="number" value="${subCredits}" min="1" max="10" style="width:70px;">
         <label style="margin-top:12px; display:block;">Assessments</label>
         <div id="editor-assessments"></div>
         <button id="editor-add-assessment" type="button" class="btn-sm" style="margin-top:8px;">+ Add assessment</button>
@@ -378,10 +384,9 @@
 
       async function onConfirm() {
         const newName = document.getElementById("editor-sub-name").value.trim();
+        const newCredits = parseInt(document.getElementById("editor-sub-credits").value, 10);
         try {
-          if (newName && newName !== subName) {
-            await apiPut(`/api/subjects/${subCode}`, { code: subCode, name: newName });
-          }
+          await apiPut(`/api/subjects/${subId}`, { code: "", name: newName, credit_hours: newCredits });
 
           const rows = assessmentsEl.querySelectorAll(".editor-assessment-row");
           for (const row of rows) {
@@ -393,15 +398,15 @@
             const weight = parseFloat(row.querySelector(".editor-a-weight").value);
 
             if (deleted) {
-              if (id) await apiDelete(`/api/subjects/${subCode}/assessments/${id}`);
+              if (id) await apiDelete(`/api/subjects/${subId}/assessments/${id}`);
               continue;
             }
             if (!name || isNaN(weight)) continue;
 
             if (id) {
-              await apiPut(`/api/subjects/${subCode}/assessments/${id}`, { name, weight });
+              await apiPut(`/api/subjects/${subId}/assessments/${id}`, { name, weight });
             } else {
-              await apiPost(`/api/subjects/${subCode}/assessments`, { name, weight });
+              await apiPost(`/api/subjects/${subId}/assessments`, { name, weight });
             }
           }
 
@@ -425,13 +430,15 @@
   document.getElementById("add-subject-btn").addEventListener("click", async () => {
     const code = document.getElementById("new-sub-code").value.trim();
     const name = document.getElementById("new-sub-name").value.trim();
+    const credits = parseInt(document.getElementById("new-sub-credits").value, 10);
     const errorEl = document.getElementById("add-subject-error");
     errorEl.hidden = true;
 
     try {
-      await apiPost("/api/subjects", { code, name });
+      await apiPost("/api/subjects", { code, name, credit_hours: credits });
       document.getElementById("new-sub-code").value = "";
       document.getElementById("new-sub-name").value = "";
+      document.getElementById("new-sub-credits").value = "3";
       loadSubjects();
     } catch (err) {
       errorEl.textContent = err.message;
