@@ -3,8 +3,7 @@ from auth.auth import signup as auth_signup
 from fastapi import APIRouter, Request, HTTPException
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
-from database.database import get_student_by_id
-
+from database.database import get_student_by_id, list_trimesters_for_student, set_active_trimester
 router = APIRouter()
 
 
@@ -58,3 +57,22 @@ def me_route(request: Request):
         "username": student["stu_name"],
         "trimester": student["active_trimester"],
     }
+
+@router.get("/api/trimesters")
+def get_trimesters(request: Request):
+    student = get_current_student(request)
+    trimesters = list_trimesters_for_student(student["stu_id"])
+    if student["active_trimester"] and student["active_trimester"] not in trimesters:
+        trimesters.append(student["active_trimester"])
+    return {"trimesters": trimesters, "active": student["active_trimester"]}
+
+
+class TrimesterIn(BaseModel):
+    trimester: str
+
+
+@router.put("/api/trimesters")
+def switch_trimester(body: TrimesterIn, request: Request):
+    student = get_current_student(request)
+    set_active_trimester(student["stu_id"], body.trimester.strip())
+    return {"message": "Trimester updated"}
