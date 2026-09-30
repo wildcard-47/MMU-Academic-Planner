@@ -146,13 +146,6 @@ h1 {
   to   { opacity: 1; transform: translateY(0); }
 }
 
-form.inline {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-  align-items: center;
-}
-
 input, select {
   padding: 7px 10px;
   border: 1px solid var(--border-color);
@@ -241,20 +234,6 @@ th, td {
 .subject-icon {
   font-size: 20px;
   margin-right: 4px;
-}
-
-.auth-box {
-  max-width: 350px;
-  margin: 60px auto;
-}
-
-.auth-box input {
-  width: 100%;
-  margin-bottom: 10px;
-}
-
-.auth-box button {
-  width: 100%;
 }
 
 /*Dashboard: insight banner*/
@@ -500,26 +479,11 @@ th, td {
     justify-content: space-between;
   }
 
-  form.inline {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  form.inline input, form.inline select, form.inline button {
-    width: 100%;
-  }
-
-  #assessments-list .card,
   #subjects-list .card {
     display: flex;
     flex-direction: column;
     align-items: stretch;
     gap: 6px;
-  }
-
-  #assessments-list .card input,
-  #assessments-list .card button {
-    width: 100%;
   }
 
   .stats-row {
@@ -530,4 +494,11 @@ th, td {
     width: 90px;
     font-size: 13px;
   }
+}
+/*Trimester switcher in the nav bar*/
+
+#trimester-select {
+  width: auto;
+  padding: 6px 8px;
+  font-size: 0.85rem;
 }

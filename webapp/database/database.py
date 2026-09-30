@@ -1,30 +1,68 @@
-﻿from random import random
-import sqlite3
+﻿import sqlite3
 import os
 
 DB_DIR = os.path.abspath(os.path.dirname(__file__))
 DB_PATH = os.path.join(DB_DIR, "mmu_academic_planner.db")
 
+
+# Opens a connection with foreign keys switched on, so deleting a subject
+# also deletes its assessments (ON DELETE CASCADE). Rows come back as dicts.
+def get_connection():
+    conn = sqlite3.connect(DB_PATH)
+    conn.row_factory = sqlite3.Row
+    conn.execute("PRAGMA foreign_keys = ON")
+    return conn
+
+
+# Tables:
+#   students    - one row per account, remembers which trimester is active
+#   subjects    - belongs to ONE student and ONE trimester (e.g. "2026/2027 T1"),
+#                 so every student has their own subject list per trimester
+#   assessments - belongs to one subject; score is NULL until it is marked
 def create_database_tables():
     try:
-        with sqlite3.connect(os.path.join(DB_DIR, "mmu_academic_planner.db")) as conn:
+        with get_connection() as conn:
             cursor = conn.cursor()
-            cursor.execute("create table if not exists students (stu_id integer primary key, stu_name text not null UNIQUE, stu_password text not null, active_trimester TEXT);")
+            cursor.execute(
+                "CREATE TABLE IF NOT EXISTS students ("
+                "stu_id INTEGER PRIMARY KEY, "
+                "stu_name TEXT NOT NULL UNIQUE, "
+                "stu_password TEXT NOT NULL, "
+                "active_trimester TEXT)"
+            )
+            cursor.execute(
+                "CREATE TABLE IF NOT EXISTS subjects ("
+                "sub_id INTEGER PRIMARY KEY, "
+                "stu_id INTEGER NOT NULL, "
+                "trimester TEXT NOT NULL, "
+                "sub_code TEXT NOT NULL, "
+                "sub_name TEXT NOT NULL, "
+                "credit_hours INTEGER NOT NULL DEFAULT 3, "
+                "target_grade TEXT, "
+                "UNIQUE (stu_id, trimester, sub_code), "
+                "FOREIGN KEY (stu_id) REFERENCES students(stu_id) ON DELETE CASCADE)"
+            )
+            cursor.execute(
+                "CREATE TABLE IF NOT EXISTS assessments ("
+                "assessment_id INTEGER PRIMARY KEY, "
+                "sub_id INTEGER NOT NULL, "
+                "assessment_name TEXT NOT NULL, "
+                "weight REAL NOT NULL, "
+                "score REAL, "
+                "FOREIGN KEY (sub_id) REFERENCES subjects(sub_id) ON DELETE CASCADE)"
+            )
             conn.commit()
-            print("Students table created successfully.")
-            cursor.execute("create table if not exists subjects (sub_id integer primary key, sub_code text not null, sub_name text not   null);")
-            conn.commit()
-            print("Subjects table created successfully.")
-            cursor.execute("create table if not exists assessments (assessment_id integer primary key, sub_code text not null, assessment_name text not null, weight integer , foreign key (sub_code) references subjects(sub_code));")
-            conn.commit()
-            print("Assessments table created successfully.")
-            cursor.execute("create table if not exists scores (score_id integer primary key, stu_id integer not null, assessment_id integer not null, score real not null, foreign key (stu_id) references students(stu_id), foreign key (assessment_id) references assessments(assessment_id));")
-            conn.commit()
-            print("Scores table created successfully.")
-
+            print("Database tables ready.")
     except sqlite3.Error as e:
         print("Failed to create database:", e)
 
+
+# Called on startup. Creates missing tables but keeps existing data.
+def init_data():
+    create_database_tables()
+
+
+# ---------- Students ----------
 
 def add_student(name, password_hash, trimester):
     try:
@@ -49,192 +87,174 @@ def get_student(username):
         print("Failed to get student:", e)
         return None
 
-def get_student(username):
+
+def get_student_by_id(student_id):
     try:
-        with sqlite3.connect(os.path.join(DB_DIR, "mmu_academic_planner.db")) as conn:
-            cursor = conn.cursor()
-            cursor.execute("SELECT * FROM students WHERE stu_name = ?", (username,))
-            student = cursor.fetchone()
-            return student
+        with get_connection() as conn:
+            row = conn.execute("SELECT * FROM students WHERE stu_id = ?", (student_id,)).fetchone()
+            return dict(row) if row else None
     except sqlite3.Error as e:
-        print("Failed to get student:", e)
+        print("Failed to get student by ID:", e)
         return None
 
 
-def add_subject(code, name):
+def set_active_trimester(stu_id, trimester):
     try:
-        with sqlite3.connect(os.path.join(DB_DIR, "mmu_academic_planner.db")) as conn:
-            cursor = conn.cursor()
-            cursor.execute("INSERT INTO subjects (sub_code, sub_name) VALUES (?, ?)", (code, name))
+        with get_connection() as conn:
+            conn.execute("UPDATE students SET active_trimester = ? WHERE stu_id = ?", (trimester, stu_id))
             conn.commit()
-            print(f"Subject '{name}' added successfully.")
+    except sqlite3.Error as e:
+        print("Failed to set trimester:", e)
+
+
+def list_trimesters_for_student(stu_id):
+    try:
+        with get_connection() as conn:
+            rows = conn.execute(
+                "SELECT DISTINCT trimester FROM subjects WHERE stu_id = ? ORDER BY trimester",
+                (stu_id,),
+            ).fetchall()
+            return [r["trimester"] for r in rows]
+    except sqlite3.Error as e:
+        print("Failed to list trimesters:", e)
+        return []
+
+
+# ---------- Subjects (always scoped to one student) ----------
+
+def add_subject(stu_id, trimester, code, name, credit_hours):
+    try:
+        with get_connection() as conn:
+            cursor = conn.execute(
+                "INSERT INTO subjects (stu_id, trimester, sub_code, sub_name, credit_hours) "
+                "VALUES (?, ?, ?, ?, ?)",
+                (stu_id, trimester, code, name, credit_hours),
+            )
+            conn.commit()
+            return cursor.lastrowid
     except sqlite3.Error as e:
         print("Failed to add subject:", e)
+        return None
 
-def add_assessment(subject_code, assessment_name, weight):
+
+def list_subjects(stu_id, trimester):
     try:
-        with sqlite3.connect(os.path.join(DB_DIR, "mmu_academic_planner.db")) as conn:
-            cursor = conn.cursor()
-            cursor.execute("INSERT INTO assessments (sub_code, assessment_name, weight) VALUES (?, ?, ?)", (subject_code, assessment_name, weight))
-            conn.commit()
-            print(f"Assessment '{assessment_name}' added successfully.")
-    except sqlite3.Error as e:
-        print("Failed to add assessment:", e)
-
-def add_score(student_id, assessment_id, score):
-    try:
-        with sqlite3.connect(os.path.join(DB_DIR, "mmu_academic_planner.db")) as conn:
-            cursor = conn.cursor()
-            cursor.execute("INSERT INTO scores (stu_id, assessment_id, score) VALUES (?, ?, ?)", (student_id, assessment_id, score))
-            conn.commit()
-            print(f"Score for student ID '{student_id}' in assessment ID '{assessment_id}' added successfully.")
-    except sqlite3.Error as e:
-        print("Failed to add score:", e)
-
-
-def clean_database():
-    try:
-        with sqlite3.connect(os.path.join(DB_DIR, "mmu_academic_planner.db")) as conn:
-            cursor = conn.cursor()
-            cursor.execute("drop table if exists students;")
-            cursor.execute("drop table if exists subjects;")
-            cursor.execute("drop table if exists assessments;")
-            cursor.execute("drop table if exists scores;")
-            conn.commit()
-            print("Database cleaned successfully.")
-    except sqlite3.Error as e:
-        print("Failed to clean database:", e)
-
-
-
-def list_assessments_for_student(student_name):
-    try:
-        with sqlite3.connect(os.path.join(DB_DIR, "mmu_academic_planner.db")) as conn:
-            conn.row_factory = sqlite3.Row 
-            cursor = conn.cursor()
-            # total_score is the current performance: the weighted average of the
-            # assessments marked so far (not the points earned out of 100), so a
-            # student with only a 90% midterm shows 90%, not 27%.
-            cursor.execute(
-                "SELECT j.sub_name, j.sub_code, "
-                "round(sum(a.weight * s.score) / sum(a.weight), 1) total_score, "
-                "sum(a.weight) completed_weight "
-                "FROM scores s "
-                "JOIN assessments a ON s.assessment_id = a.assessment_id "
-                "JOIN subjects j ON j.sub_code = a.sub_code "
-                "JOIN students st ON st.stu_id = s.stu_id "
-                "WHERE st.stu_name = ? "
-                "GROUP BY j.sub_name, j.sub_code "
-                "HAVING sum(a.weight) > 0",
-                (student_name,),
-            )
-            rows = cursor.fetchall()
-            return [dict(r) for r in rows]
-    except sqlite3.Error as e:
-        print("Failed to list assessments for student:", e)
-        return []
-
-
-def get_all_scores_for_subject(sub_code):
-    try:
-        with sqlite3.connect(DB_PATH) as conn:
-            conn.row_factory = sqlite3.Row
-            cursor = conn.cursor()
-            cursor.execute(
-                "SELECT st.stu_id, st.stu_name, round(sum(a.weight * s.score) / sum(a.weight), 1) total_score "
-                "FROM scores s "
-                "JOIN assessments a ON s.assessment_id = a.assessment_id "
-                "JOIN subjects j ON j.sub_code = a.sub_code "
-                "JOIN students st ON st.stu_id = s.stu_id "
-                "WHERE j.sub_code = ? "
-                "GROUP BY st.stu_id, st.stu_name "
-                "HAVING sum(a.weight) > 0",
-                (sub_code,),
-            )
-            return [dict(r) for r in cursor.fetchall()]
-    except sqlite3.Error as e:
-        print("Failed to get scores for subject:", e)
-        return []
-
-
-def get_unscored_assessments_for_student(stu_id):
-    try:
-        with sqlite3.connect(DB_PATH) as conn:
-            conn.row_factory = sqlite3.Row
-            cursor = conn.cursor()
-            cursor.execute(
-                "SELECT a.assessment_name, a.weight, j.sub_name, j.sub_code "
-                "FROM assessments a "
-                "JOIN subjects j ON j.sub_code = a.sub_code "
-                "LEFT JOIN scores s ON s.assessment_id = a.assessment_id AND s.stu_id = ? "
-                "WHERE s.score IS NULL "
-                "ORDER BY a.weight DESC",
-                (stu_id,),
-            )
-            return [dict(r) for r in cursor.fetchall()]
-    except sqlite3.Error as e:
-        print("Failed to get unscored assessments:", e)
-        return []
-
-
-def fill_assessments_for_all_students():
-    try:
-        with sqlite3.connect(os.path.join(DB_DIR, "mmu_academic_planner.db")) as conn:
-            cursor = conn.cursor()
-            cursor.execute("SELECT stu_id FROM students")
-            students = cursor.fetchall()
-            cursor.execute("SELECT assessment_id FROM assessments")
-            assessments = cursor.fetchall()
-
-            for student in students:
-                for assessment in assessments:
-                    cursor.execute("INSERT INTO scores (stu_id, assessment_id, score) VALUES (?, ?, ?)", (student[0], assessment[0], random() * 100))
-            conn.commit()
-            print("Filled assessments for all students successfully.")
-    except sqlite3.Error as e:
-        print("Failed to fill assessments for all students:", e)
-
-
-def init_data():
-    #clean_database()
-    create_database_tables()
-    #add_student("Mayada","password1")
-    #add_student("Mohammad","password2")
-    #add_student("Rin","password3")
-
-    #add_subject("MATH101", "Mathematics")
-    #add_subject("CS101", "Programming")
-    #add_subject("PHYS101", "Physics")
-
-    #add_assessment("MATH101", "Midterm Exam", 30)
-    #add_assessment("MATH101", "Final Exam", 70)
-    #add_assessment("CS101", "Midterm Exam", 30)
-    #add_assessment("CS101", "Final Exam", 70)
-    #add_assessment("PHYS101", "Midterm Exam", 30)
-    #add_assessment("PHYS101", "Final Exam", 70)
-
-    #fill_assessments_for_all_students()
-
-
-def list_subjects():
-    try:
-        with sqlite3.connect(os.path.join(DB_DIR, "mmu_academic_planner.db")) as conn:
-            conn.row_factory = sqlite3.Row
-            cursor = conn.cursor()
-            rows = cursor.execute("SELECT * FROM subjects").fetchall()
+        with get_connection() as conn:
+            rows = conn.execute(
+                "SELECT * FROM subjects WHERE stu_id = ? AND trimester = ? ORDER BY sub_code",
+                (stu_id, trimester),
+            ).fetchall()
             return [dict(r) for r in rows]
     except sqlite3.Error as e:
         print("Failed to list subjects:", e)
         return []
 
 
-def list_assessments_for_subject(sub_code):
+def list_all_subjects_for_student(stu_id):
     try:
-        with sqlite3.connect(os.path.join(DB_DIR, "mmu_academic_planner.db")) as conn:
-            conn.row_factory = sqlite3.Row
-            cursor = conn.cursor()
-            rows = cursor.execute(
-                "SELECT * FROM assessments WHERE sub_code = ?", (sub_code,)
+        with get_connection() as conn:
+            rows = conn.execute(
+                "SELECT * FROM subjects WHERE stu_id = ? ORDER BY trimester, sub_code", (stu_id,)
+            ).fetchall()
+            return [dict(r) for r in rows]
+    except sqlite3.Error as e:
+        print("Failed to list subjects:", e)
+        return []
+
+
+# Returns the subject only if it belongs to this student, otherwise None.
+def get_subject(stu_id, sub_id):
+    try:
+        with get_connection() as conn:
+            row = conn.execute(
+                "SELECT * FROM subjects WHERE sub_id = ? AND stu_id = ?", (sub_id, stu_id)
+            ).fetchone()
+            return dict(row) if row else None
+    except sqlite3.Error as e:
+        print("Failed to get subject:", e)
+        return None
+
+
+def find_subject_by_code(stu_id, trimester, code):
+    try:
+        with get_connection() as conn:
+            row = conn.execute(
+                "SELECT * FROM subjects WHERE stu_id = ? AND trimester = ? AND sub_code = ?",
+                (stu_id, trimester, code),
+            ).fetchone()
+            return dict(row) if row else None
+    except sqlite3.Error as e:
+        print("Failed to find subject:", e)
+        return None
+
+
+def update_subject(sub_id, name, credit_hours):
+    try:
+        with get_connection() as conn:
+            conn.execute(
+                "UPDATE subjects SET sub_name = ?, credit_hours = ? WHERE sub_id = ?",
+                (name, credit_hours, sub_id),
+            )
+            conn.commit()
+    except sqlite3.Error as e:
+        print("Failed to update subject:", e)
+
+
+def set_target_grade(sub_id, target_grade):
+    try:
+        with get_connection() as conn:
+            conn.execute("UPDATE subjects SET target_grade = ? WHERE sub_id = ?", (target_grade, sub_id))
+            conn.commit()
+    except sqlite3.Error as e:
+        print("Failed to set target grade:", e)
+
+
+def delete_subject(sub_id):
+    try:
+        with get_connection() as conn:
+            conn.execute("DELETE FROM subjects WHERE sub_id = ?", (sub_id,))
+            conn.commit()
+    except sqlite3.Error as e:
+        print("Failed to delete subject:", e)
+
+
+# Finds a classmate who already set up the same subject code in the same
+# trimester and has assessments, so a new student can copy the structure.
+def find_classmate_template(stu_id, trimester, code):
+    try:
+        with get_connection() as conn:
+            row = conn.execute(
+                "SELECT j.sub_id FROM subjects j "
+                "JOIN assessments a ON a.sub_id = j.sub_id "
+                "WHERE j.trimester = ? AND j.sub_code = ? AND j.stu_id != ? "
+                "GROUP BY j.sub_id ORDER BY count(*) DESC LIMIT 1",
+                (trimester, code, stu_id),
+            ).fetchone()
+            return row["sub_id"] if row else None
+    except sqlite3.Error as e:
+        print("Failed to find template:", e)
+        return None
+
+
+# ---------- Assessments ----------
+
+def add_assessment(sub_id, assessment_name, weight):
+    try:
+        with get_connection() as conn:
+            conn.execute(
+                "INSERT INTO assessments (sub_id, assessment_name, weight) VALUES (?, ?, ?)",
+                (sub_id, assessment_name, weight),
+            )
+            conn.commit()
+    except sqlite3.Error as e:
+        print("Failed to add assessment:", e)
+
+
+def list_assessments_for_subject(sub_id):
+    try:
+        with get_connection() as conn:
+            rows = conn.execute(
+                "SELECT * FROM assessments WHERE sub_id = ? ORDER BY assessment_id", (sub_id,)
             ).fetchall()
             return [dict(r) for r in rows]
     except sqlite3.Error as e:
@@ -242,44 +262,26 @@ def list_assessments_for_subject(sub_code):
         return []
 
 
-def get_subject_by_code(code):
+# Returns the assessment (with its subject's stu_id) only if it belongs to
+# this student, otherwise None.
+def get_assessment(stu_id, assessment_id):
     try:
-        with sqlite3.connect(os.path.join(DB_DIR, "mmu_academic_planner.db")) as conn:
-            conn.row_factory = sqlite3.Row
-            cursor = conn.cursor()
-            row = cursor.execute("SELECT * FROM subjects WHERE sub_code = ?", (code,)).fetchone()
+        with get_connection() as conn:
+            row = conn.execute(
+                "SELECT a.* FROM assessments a JOIN subjects j ON j.sub_id = a.sub_id "
+                "WHERE a.assessment_id = ? AND j.stu_id = ?",
+                (assessment_id, stu_id),
+            ).fetchone()
             return dict(row) if row else None
     except sqlite3.Error as e:
-        print("Failed to get subject:", e)
+        print("Failed to get assessment:", e)
         return None
-
-
-def update_subject(code, name):
-    try:
-        with sqlite3.connect(os.path.join(DB_DIR, "mmu_academic_planner.db")) as conn:
-            cursor = conn.cursor()
-            cursor.execute("UPDATE subjects SET sub_name = ? WHERE sub_code = ?", (name, code))
-            conn.commit()
-    except sqlite3.Error as e:
-        print("Failed to update subject:", e)
-
-
-def delete_subject(code):
-    try:
-        with sqlite3.connect(os.path.join(DB_DIR, "mmu_academic_planner.db")) as conn:
-            cursor = conn.cursor()
-            cursor.execute("DELETE FROM assessments WHERE sub_code = ?", (code,))
-            cursor.execute("DELETE FROM subjects WHERE sub_code = ?", (code,))
-            conn.commit()
-    except sqlite3.Error as e:
-        print("Failed to delete subject:", e)
 
 
 def update_assessment(assessment_id, name, weight):
     try:
-        with sqlite3.connect(os.path.join(DB_DIR, "mmu_academic_planner.db")) as conn:
-            cursor = conn.cursor()
-            cursor.execute(
+        with get_connection() as conn:
+            conn.execute(
                 "UPDATE assessments SET assessment_name = ?, weight = ? WHERE assessment_id = ?",
                 (name, weight, assessment_id),
             )
@@ -290,65 +292,27 @@ def update_assessment(assessment_id, name, weight):
 
 def delete_assessment(assessment_id):
     try:
-        with sqlite3.connect(os.path.join(DB_DIR, "mmu_academic_planner.db")) as conn:
-            cursor = conn.cursor()
-            cursor.execute("DELETE FROM assessments WHERE assessment_id = ?", (assessment_id,))
+        with get_connection() as conn:
+            conn.execute("DELETE FROM assessments WHERE assessment_id = ?", (assessment_id,))
             conn.commit()
     except sqlite3.Error as e:
         print("Failed to delete assessment:", e)
 
 
-def list_assessments_with_scores(stu_id):
+# Saves the mark for one assessment. A score of None removes the mark.
+def save_score(assessment_id, score):
     try:
-        with sqlite3.connect(DB_PATH) as conn:
-            conn.row_factory = sqlite3.Row
-            cursor = conn.cursor()
-            cursor.execute(
-                "SELECT j.sub_code, j.sub_name, a.assessment_id, a.assessment_name, a.weight, s.score "
-                "FROM subjects j "
-                "JOIN assessments a ON a.sub_code = j.sub_code "
-                "LEFT JOIN scores s ON s.assessment_id = a.assessment_id AND s.stu_id = ? "
-                "ORDER BY j.sub_code, a.assessment_id",
-                (stu_id,),
-            )
-            return [dict(r) for r in cursor.fetchall()]
-    except sqlite3.Error as e:
-        print("Failed to list assessments with scores:", e)
-        return []
-
-
-def get_assessment_by_id(assessment_id):
-    try:
-        with sqlite3.connect(DB_PATH) as conn:
-            conn.row_factory = sqlite3.Row
-            cursor = conn.cursor()
-            row = cursor.execute(
-                "SELECT * FROM assessments WHERE assessment_id = ?", (assessment_id,)
-            ).fetchone()
-            return dict(row) if row else None
-    except sqlite3.Error as e:
-        print("Failed to get assessment:", e)
-        return None
-
-
-# Saves one student's mark for one assessment, replacing any earlier mark.
-# A score of None removes the mark.
-def save_score(stu_id, assessment_id, score):
-    try:
-        with sqlite3.connect(DB_PATH) as conn:
-            cursor = conn.cursor()
-            cursor.execute(
-                "DELETE FROM scores WHERE stu_id = ? AND assessment_id = ?",
-                (stu_id, assessment_id),
-            )
-            if score is not None:
-                cursor.execute(
-                    "INSERT INTO scores (stu_id, assessment_id, score) VALUES (?, ?, ?)",
-                    (stu_id, assessment_id, score),
-                )
+        with get_connection() as conn:
+            conn.execute("UPDATE assessments SET score = ? WHERE assessment_id = ?", (score, assessment_id))
             conn.commit()
     except sqlite3.Error as e:
         print("Failed to save score:", e)
+
+
+# ---------- Comparison queries (used by the dashboard) ----------
+
+# Every student's assessments (weight and score) in one subject code for one
+# trimester. The dashboard turns these into each student's current percentage.
 def get_class_scores_for_subject(trimester, code):
     try:
         with get_connection() as conn:
