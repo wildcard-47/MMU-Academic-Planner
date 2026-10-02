@@ -50,3 +50,27 @@ def validate_score(value):
         return None, "Score must be between 0 and 100."
 
     return score, None
+
+# A trimester is written as "YYYY/YYYY Tn", for example "2026/2027 T1".
+# Everyone must use the same format, otherwise classmates in the same
+# trimester would not be matched when a subject is copied.
+
+def validate_trimester(value):
+    value = (value or "").strip()
+    parts = value.split(" ")
+    if len(parts) != 2:
+        return None, "Trimester must look like 2026/2027 T1."
+
+    years, term = parts
+    year_parts = years.split("/")
+    if len(year_parts) != 2:
+        return None, "Trimester must look like 2026/2027 T1."
+    for y in year_parts:
+        if not y.isdigit() or len(y) != 4:
+            return None, "Trimester must look like 2026/2027 T1."
+    if int(year_parts[1]) != int(year_parts[0]) + 1:
+        return None, "The second year must follow the first, e.g. 2026/2027."
+    if term not in ("T1", "T2", "T3"):
+        return None, "Trimester must be T1, T2 or T3."
+
+    return value, None
