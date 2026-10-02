@@ -19,7 +19,7 @@ def get_marks(student=Depends(get_current_student)):
     for row in list_assessments_with_scores(student["stu_id"], student["active_trimester"]):
         code = row["sub_code"]
         if code not in subjects:
-            subjects[code] = {"code": code, "name": row["sub_name"], "assessments": []}
+            subjects[code] = {"id": row["sub_id"], "code": code, "name": row["sub_name"], "assessments": []}
         subjects[code]["assessments"].append({
             "id": row["assessment_id"],
             "name": row["assessment_name"],

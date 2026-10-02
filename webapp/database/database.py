@@ -331,7 +331,7 @@ def list_assessments_with_scores(stu_id, trimester):
     try:
         with get_connection() as conn:
             rows = conn.execute(
-                "SELECT j.sub_code, j.sub_name, a.assessment_id, a.assessment_name, a.weight, a.score "
+                "SELECT j.sub_id, j.sub_code, j.sub_name, a.assessment_id, a.assessment_name, a.weight, a.score "
                 "FROM subjects j JOIN assessments a ON a.sub_id = j.sub_id "
                 "WHERE j.stu_id = ? AND j.trimester = ? "
                 "ORDER BY j.sub_code, a.assessment_id",
